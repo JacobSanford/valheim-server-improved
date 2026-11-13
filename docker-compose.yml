@@ -1,0 +1,41 @@
+services:
+  valheim:
+    image: ghcr.io/community-valheim-tools/valheim-server
+    ports:
+      - "2456-2457:2456-2457/udp"
+      # Crossplay backend: uncomment if CROSSPLAY=true
+      # - "2458:2458/udp"
+      # Status page (JSON at /status.json): localhost only
+      - "127.0.0.1:8456:80/tcp"
+    env_file:
+      - ./env/valheim.env
+    volumes:
+      - ./data:/config
+      - ./server:/opt/valheim
+      - ./backups:/config/backups
+      - ./notify:/opt/notify:ro
+      - ./hooks:/opt/hooks:ro
+    restart: unless-stopped
+    cap_add:
+      - sys_nice
+    stop_grace_period: 2m
+    # Healthy once the game is listening. The image writes the state to this file.
+    # Long start period: the first start downloads about 4 GB of server files.
+    healthcheck:
+      test: ["CMD-SHELL", "grep -qx running /var/run/valheim/valheim-server.status"]
+      interval: 1m
+      timeout: 10s
+      retries: 5
+      start_period: 15m
+    # Keep at most ~30 MB of container logs.
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G

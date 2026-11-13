@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          for f in $(git ls-files '*.sh'); do
+            bash -n "$f"
+          done
+
+      # Same ShellCheck version as used locally, rather than the runner's apt one.
+      - name: ShellCheck
+        run: docker run --rm -v "$PWD:/mnt:ro" -w /mnt koalaman/shellcheck:v0.10.0 $(git ls-files '*.sh')
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scripts, notifier, backup hook and compose config
+        run: tests/run.sh --no-image
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Hooks and notifier inside the Valheim image
+        run: tests/image.test.sh

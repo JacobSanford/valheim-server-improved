@@ -1,0 +1,4 @@
+# Test code lists files whose names the tests chose themselves, so ls is fine.
+source-path=SCRIPTDIR
+external-sources=true
+disable=SC2012,SC2010

@@ -1,0 +1,40 @@
+# Sleep when idle. Added on top of docker-compose.yml by the scripts when
+# SLEEP_WHEN_IDLE=true in env/valheim.env; see docs/guides/sleep.md.
+#
+# Lazytainer owns the published ports and the network namespace. Valheim joins
+# that namespace, so Lazytainer sees every packet on the game ports. With no
+# traffic for SLEEP_AFTER_SECONDS it stops (or pauses) Valheim; when packets
+# arrive again it starts it.
+services:
+  lazytainer:
+    image: ghcr.io/vmorganp/lazytainer:2.0.31
+    restart: unless-stopped
+    ports:
+      - "2456-2457:2456-2457/udp"
+      # Crossplay backend: uncomment if CROSSPLAY=true
+      # - "2458:2458/udp"
+      # Status page (JSON at /status.json): localhost only
+      - "127.0.0.1:8456:80/tcp"
+    volumes:
+      # Lets Lazytainer start and stop Valheim. Read-only does not limit the
+      # Docker API: whoever controls this container controls the host.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "lazytainer.group.valheim.ports=2456,2457"
+      - "lazytainer.group.valheim.sleepMethod=${SLEEP_METHOD:-stop}"
+      - "lazytainer.group.valheim.inactiveTimeout=${SLEEP_AFTER_SECONDS:-1200}"
+      - "lazytainer.group.valheim.minPacketThreshold=${SLEEP_MIN_PACKETS:-10}"
+      - "lazytainer.group.valheim.pollRate=5"
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  valheim:
+    ports: !reset []
+    network_mode: service:lazytainer
+    depends_on:
+      - lazytainer
+    labels:
+      - "lazytainer.group=valheim"

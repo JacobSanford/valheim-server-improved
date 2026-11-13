@@ -1,0 +1,5 @@
+mkdocs<2
+mkdocs-material
+mike
+mkdocs-htmlproofer-plugin
+mkdocs-enumerate-headings-plugin

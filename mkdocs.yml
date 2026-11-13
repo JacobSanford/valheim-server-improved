@@ -1,0 +1,93 @@
+site_name: valheim-server-improved
+site_description: A ready-to-run Docker Compose setup for the community Valheim server image, with safer defaults
+site_author: Jacob Sanford
+site_url: https://jacobsanford.github.io/valheim-server-improved/
+
+repo_name: JacobSanford/valheim-server-improved
+repo_url: https://github.com/JacobSanford/valheim-server-improved
+
+extra:
+  version:
+    provider: mike
+    default: latest
+
+theme:
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - tables
+  - attr_list
+  - md_in_html
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.caret
+
+nav:
+  - Home: index.md
+  - Quick Start: quickstart.md
+  - Guides:
+    - Players, Admins and Bans: guides/players.md
+    - Discord Notifications: guides/notifications.md
+    - Backups and Wipes: guides/backups.md
+    - Sleep When Idle: guides/sleep.md
+  - Troubleshooting: troubleshooting.md
+  - Reference: reference.md
+  - Improvements over Upstream: improvements.md
+
+plugins:
+  - search
+  - htmlproofer:
+      enabled: !ENV [CI, false]  # Only run in CI, not local builds
+      raise_error: true  # Fail build on broken links
+      raise_error_after_finish: true  # Check all links before failing
+      validate_external_urls: true  # Check external links too
+      # Status code only, no body: some sites intermittently send bodies urllib3
+      # can't decompress, and the resulting zlib.error crashes the build.
+      skip_downloads: true
+      validate_rendered_template: true
+      retry_max_times: 3  # Retry failed links after 2s, 4s, 8s
+      raise_error_excludes:
+        429: ['https://github.com/*']  # Shared runner IPs get rate-limited
+      ignore_urls:
+        - 'https://support.discord.com/*'  # Blocks automated requests (403)
+  - enumerate-headings:
+      exclude:
+        - index.md
