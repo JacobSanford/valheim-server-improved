@@ -493,7 +493,7 @@
 </tr>
 </tbody>
 </table>
-<p>The image deletes backups older than <code>BACKUPS_MAX_AGE</code> at each backup, including the one at wake. The env example sets <code>BACKUPS_MAX_AGE=30</code>; the image's own default is 3. With 30, a wake after weeks asleep still keeps the last backups, but after more than 30 days asleep only the wake's own backup is left. Raise <code>BACKUPS_MAX_AGE</code> if the server may sleep longer.</p>
+<p>Each backup, including the one at wake, deletes backups older than <code>BACKUPS_KEEP_DAYS</code> (30 in the env example) but always keeps the newest <code>BACKUPS_KEEP_MIN</code> (3). So however long the server sleeps, a wake leaves at least 3 backups. See <a href="../backups/">Backups and Wipes</a>.</p>
 <h2 id="tune-it"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.5</span> Tune It</h2>
 <table>
 <thead>

@@ -446,6 +446,22 @@
 <td><code>SERVER_PASS must not appear in SERVER_NAME</code></td>
 <td>Change one of them.</td>
 </tr>
+<tr>
+<td><code>With BACKUPS_KEEP_DAYS or BACKUPS_KEEP_MIN set, set BACKUPS_MAX_AGE=36500</code></td>
+<td>Set <code>BACKUPS_MAX_AGE=36500</code>, as in the env example. An older env file has a smaller value. See <a href="../guides/backups/">Backups and Wipes</a>.</td>
+</tr>
+<tr>
+<td><code>BACKUPS_KEEP_MIN ... is larger than BACKUPS_MAX_COUNT</code></td>
+<td>Lower <code>BACKUPS_KEEP_MIN</code> or raise <code>BACKUPS_MAX_COUNT</code>.</td>
+</tr>
+<tr>
+<td><code>BACKUPS_KEEP_DAYS ... must be a whole number of days</code> or <code>BACKUPS_KEEP_MIN ... must be a whole number</code></td>
+<td>Fix the value in <code>env/valheim.env</code>.</td>
+</tr>
+<tr>
+<td><code>SLEEP_METHOD</code>, <code>SLEEP_AFTER_SECONDS</code> or <code>SLEEP_MIN_PACKETS ... must be</code></td>
+<td>Fix the value; the message gives the allowed range. See <a href="../guides/sleep/">Sleep When Idle</a>.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="the-server-stays-unhealthy"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.2</span> The Server Stays Unhealthy</h2>

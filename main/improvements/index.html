@@ -450,6 +450,7 @@
 <li><strong>Wipes archive first.</strong> <code>wipe-restart.sh</code> asks you to type the world name, checks it can delete everything before it deletes anything, then saves <code>data/</code> and <code>backups/</code> to a <code>.tar.gz</code> in <code>wipe-archives/</code>.</li>
 <li><strong>Wipes keep your admins.</strong> The admin, ban and permitted lists survive a wipe.</li>
 <li><strong>Restores are documented.</strong> <a href="../guides/backups/">Backups and Wipes</a> has step-by-step restores from an hourly backup and from a wipe archive. Upstream documents none.</li>
+<li><strong>The newest backups survive any age limit.</strong> The image deletes every backup older than <code>BACKUPS_MAX_AGE</code>, even the last one. Here, <code>BACKUPS_KEEP_DAYS</code> deletes old backups but always keeps the newest <code>BACKUPS_KEEP_MIN</code> (3 in the env example), so a server left off for months still has them.</li>
 <li><strong>Idle hours don't push out real backups.</strong> <code>BACKUPS_IF_IDLE=false</code> stops backups an hour after the last player leaves. The image's default (<code>true</code>) keeps backing up while nobody plays, so with a 12-backup limit, one idle night replaces every backup of the last session. At each restart, <code>hooks/idle-backups.sh</code> also deletes the previous backup if nobody has played since it, so restarts don't pile up backups of idle time.</li>
 </ul>
 <h2 id="operations"><span class="enumerate-headings-plugin enumerate-heading-plugin">8.3</span> Operations</h2>

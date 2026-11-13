@@ -263,6 +263,15 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#change-how-long-backups-are-kept">
+<span class="md-ellipsis">
+      
+        Change How Long Backups Are Kept
+      
+    </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -358,6 +367,15 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#change-how-long-backups-are-kept">
+<span class="md-ellipsis">
+      
+        Change How Long Backups Are Kept
+      
+    </span>
+</a>
+</li>
 </ul>
 </nav>
 </div>
@@ -366,7 +384,7 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="backups-and-wipes"><span class="enumerate-headings-plugin enumerate-heading-plugin">4.</span> Backups and Wipes</h1>
-<p>The server writes a backup of the world to <code>backups/</code> each time the container starts and at 5 minutes past each hour, keeping at most 12 and none older than 30 days. Backups stop an hour after the last player leaves.</p>
+<p>The server writes a backup of the world to <code>backups/</code> each time the container starts and at 5 minutes past each hour, keeping at most 12. Backups older than 30 days are deleted, but the newest 3 are always kept, however old. Backups stop an hour after the last player leaves.</p>
 <p>A running server saves the world even when nobody is on, so every restart adds a backup that differs from the last one only by idle time. When nobody has played since the previous backup, <code>hooks/idle-backups.sh</code> deletes that previous one and keeps the new one, so restarts and idle hours can't push out backups of real play.</p>
 <p>Run every command from the repository root, and replace the placeholders:</p>
 <table>
@@ -409,6 +427,36 @@
 </span><span id="__span-2-4"><a href="#__codelineno-2-4" id="__codelineno-2-4" name="__codelineno-2-4"></a>./restart.sh
 </span></code></pre></div>
 <p>After any restore, check the log shows <code>Game server connected</code>.</p>
+<h2 id="change-how-long-backups-are-kept"><span class="enumerate-headings-plugin enumerate-heading-plugin">4.4</span> Change How Long Backups Are Kept</h2>
+<p>Set these in <code>env/valheim.env</code>, then run <code>./restart.sh</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Example value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BACKUPS_KEEP_DAYS</code></td>
+<td><code>30</code></td>
+<td>Deletes backups older than this many days.</td>
+</tr>
+<tr>
+<td><code>BACKUPS_KEEP_MIN</code></td>
+<td><code>3</code></td>
+<td>Never deletes the newest this many backups for age, so a server left off for months still has them.</td>
+</tr>
+<tr>
+<td><code>BACKUPS_MAX_COUNT</code></td>
+<td><code>12</code></td>
+<td>Keeps at most this many backups, whatever their age.</td>
+</tr>
+</tbody>
+</table>
+<p>The image's own age limit, <code>BACKUPS_MAX_AGE</code>, deletes every backup older than it, even the last one. So the env example turns it off with <code>BACKUPS_MAX_AGE=36500</code> (100 years), and <code>hooks/idle-backups.sh</code> applies <code>BACKUPS_KEEP_DAYS</code> and <code>BACKUPS_KEEP_MIN</code> after each backup instead. <code>restart.sh</code> refuses to start while either is set and <code>BACKUPS_MAX_AGE</code> is lower than 36500, or when <code>BACKUPS_KEEP_MIN</code> is larger than <code>BACKUPS_MAX_COUNT</code>.</p>
+<p>To use the image's age limit instead, remove <code>BACKUPS_KEEP_DAYS</code> and <code>BACKUPS_KEEP_MIN</code> and set <code>BACKUPS_MAX_AGE</code> to the number of days.</p>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

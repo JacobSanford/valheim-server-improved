@@ -441,9 +441,19 @@
 <td>Saves a backup of the world to <code>backups/</code> at 5 minutes past each hour.</td>
 </tr>
 <tr>
-<td><code>BACKUPS_MAX_AGE</code></td>
+<td><code>BACKUPS_KEEP_DAYS</code></td>
 <td><code>30</code></td>
-<td>Deletes backups older than this many days.</td>
+<td>Deletes backups older than this many days, except the newest <code>BACKUPS_KEEP_MIN</code>. Applied by <code>hooks/idle-backups.sh</code>. See <a href="../guides/backups/">Backups and Wipes</a>.</td>
+</tr>
+<tr>
+<td><code>BACKUPS_KEEP_MIN</code></td>
+<td><code>3</code></td>
+<td>Never deletes the newest this many backups for age.</td>
+</tr>
+<tr>
+<td><code>BACKUPS_MAX_AGE</code></td>
+<td><code>36500</code></td>
+<td>The image's own age limit, which can't keep a minimum. 36500 days turns it off; <code>restart.sh</code> requires that while <code>BACKUPS_KEEP_DAYS</code> or <code>BACKUPS_KEEP_MIN</code> is set.</td>
 </tr>
 <tr>
 <td><code>BACKUPS_MAX_COUNT</code></td>
