@@ -428,7 +428,7 @@
 <tr>
 <td><code>TZ</code></td>
 <td><code>Etc/UTC</code></td>
-<td>The timezone used for logs and the cron schedules below.</td>
+<td>The <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">timezone</a> used for logs and the cron schedules below.</td>
 </tr>
 <tr>
 <td><code>PUID</code> / <code>PGID</code></td>
@@ -458,7 +458,7 @@
 <tr>
 <td><code>UPDATE_CRON</code></td>
 <td><code>*/15 * * * *</code></td>
-<td>How often to check for game updates.</td>
+<td>How often to check for game updates, as a <a href="https://en.wikipedia.org/wiki/Cron#Overview">cron schedule</a>.</td>
 </tr>
 <tr>
 <td><code>UPDATE_IF_IDLE</code></td>
@@ -518,12 +518,12 @@
 <tr>
 <td><code>SLEEP_METHOD</code></td>
 <td><code>stop</code></td>
-<td><code>stop</code> frees the memory; <code>pause</code> keeps it and wakes at once.</td>
+<td><code>stop</code> frees the memory; <code>pause</code> keeps it and wakes in about 5 seconds.</td>
 </tr>
 <tr>
 <td><code>SLEEP_AFTER_SECONDS</code></td>
 <td><code>1200</code></td>
-<td>Seconds of too little traffic before sleeping. 300 to 65535.</td>
+<td>How far back packets are counted, and how long that count must stay below <code>SLEEP_MIN_PACKETS</code> before sleeping, in seconds. 300 to 65535.</td>
 </tr>
 <tr>
 <td><code>SLEEP_MIN_PACKETS</code></td>
@@ -532,7 +532,7 @@
 </tr>
 </tbody>
 </table>
-<p>The env example also sets the image's event hooks and one log filter, to feed notifications and the backup pruning in <code>hooks/idle-backups.sh</code>. See <a href="../guides/notifications/">Discord Notifications</a> and <a href="../guides/backups/">Backups and Wipes</a>.</p>
+<p>The env example also sets the image's event hooks and two log filters, to feed notifications and the backup pruning in <code>hooks/idle-backups.sh</code>. See <a href="../guides/notifications/">Discord Notifications</a> and <a href="../guides/backups/">Backups and Wipes</a>.</p>
 <p>The image's <a href="https://github.com/community-valheim-tools/valheim-server-docker">README</a> lists every documented option, including those not set here. A few more are undocumented; they are listed with their defaults in the image's <a href="https://github.com/community-valheim-tools/valheim-server-docker/blob/main/defaults"><code>defaults</code></a> file.</p>
 <h2 id="commands"><span class="enumerate-headings-plugin enumerate-heading-plugin">7.2</span> Commands</h2>
 <p>Run from the repository root.</p>
@@ -597,7 +597,7 @@
 </tr>
 </tbody>
 </table>
-<p>With <code>SLEEP_WHEN_IDLE=true</code>, these ports are published by the <code>lazytainer</code> container instead, and Valheim shares its network.</p>
+<p>With <code>SLEEP_WHEN_IDLE=true</code>, these ports are published by the <code>lazytainer</code> container (<a href="https://github.com/vmorganp/Lazytainer">Lazytainer</a>) in <code>docker-compose.sleep.yml</code> instead, and Valheim shares its network. For crossplay, uncomment the <code>2458:2458/udp</code> line there too.</p>
 <h2 id="files"><span class="enumerate-headings-plugin enumerate-heading-plugin">7.4</span> Files</h2>
 <table>
 <thead>

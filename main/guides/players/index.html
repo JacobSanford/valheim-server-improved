@@ -375,7 +375,7 @@
 <li><strong>Join Game</strong> → <strong>Join IP</strong>, then enter the host's public IP address or hostname. Port 2456 is the default and can be left off. This works even when <code>SERVER_PUBLIC=false</code>.</li>
 </ul>
 <h2 id="manage-admins-bans-and-the-whitelist"><span class="enumerate-headings-plugin enumerate-heading-plugin">2.3</span> Manage Admins, Bans and the Whitelist</h2>
-<p>The lists are <code>adminlist.txt</code>, <code>bannedlist.txt</code> and <code>permittedlist.txt</code> in <code>data/</code>. When the permitted list has entries, only those players can join. Each entry is a platform user ID, such as <code>Steam_&lt;STEAMID64&gt;</code>, and is case sensitive. A player finds theirs in the F2 panel in game; it also appears in the server log when they connect.</p>
+<p>The lists are <code>adminlist.txt</code>, <code>bannedlist.txt</code> and <code>permittedlist.txt</code> in <code>data/</code>. When the permitted list has entries, only those players can join. Each entry is a platform user ID, such as <code>Steam_&lt;STEAMID64&gt;</code>, and is case sensitive, according to Iron Gate's server manual (<code>server/server/Valheim Dedicated Server Manual.pdf</code>, downloaded with the game server files). A player finds theirs in the F2 panel in game; it also appears in the server log when they connect.</p>
 <p>Manage each list one of two ways, not both:</p>
 <ul>
 <li>Set <code>ADMINLIST_IDS</code>, <code>BANNEDLIST_IDS</code> or <code>PERMITTEDLIST_IDS</code> in <code>env/valheim.env</code> as IDs separated by spaces, then run <code>./restart.sh</code>. A non-empty variable replaces everything in the matching file.</li>

@@ -405,7 +405,7 @@
 <p>Notifications are off until you turn them on.</p>
 <h2 id="turn-them-on"><span class="enumerate-headings-plugin enumerate-heading-plugin">3.1</span> Turn Them On</h2>
 <ol>
-<li>In Discord, open <strong>Server Settings</strong> → <strong>Integrations</strong> → <strong>Webhooks</strong>, create a webhook for the channel you want, and copy its URL.</li>
+<li>In Discord, open <strong>Server Settings</strong> → <strong>Integrations</strong> → <strong>Webhooks</strong>, create a webhook for the channel you want, and copy its URL. Discord's <a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks">Intro to Webhooks</a> shows the steps.</li>
 <li>
 <p>In <code>env/valheim.env</code>, set the webhook and list the events you want, comma separated:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nv">NOTIFY_EVENTS</span><span class="o">=</span>server_up,server_down,player_spawned

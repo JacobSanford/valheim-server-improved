@@ -724,14 +724,14 @@
 <li>The server runs as your user, not root, and only the ports you need are open.</li>
 <li>A healthcheck reports <code>healthy</code> once the game is listening, and container logs are capped at about 30 MB.</li>
 <li><code>restart.sh</code> refuses to start with the example password or one the server would reject.</li>
-<li>Wipes archive everything first and keep your admins; restores are documented.</li>
-<li>Discord notifications are built in and stay off until you turn them on.</li>
-<li>It can stop the server while nobody plays and start it on the next connection attempt. This is also off until you turn it on.</li>
+<li>Wipes archive everything first and keep your admins; <a href="guides/backups/">restores are documented</a>.</li>
+<li><a href="guides/notifications/">Discord notifications</a> are built in and stay off until you turn them on.</li>
+<li>It can <a href="guides/sleep/">stop the server while nobody plays</a> and start it on the next connection attempt. This is also off until you turn it on.</li>
 </ul>
 <p><a href="improvements/">Improvements over Upstream</a> compares it with the upstream example point by point. To get started, see the <a href="quickstart/">Quick Start</a>.</p>
 <h2 id="requirements">Requirements</h2>
 <ul>
-<li>A Linux host with Docker Engine and the compose plugin, and a user in the <code>docker</code> group to run the scripts.</li>
+<li>A Linux host with <a href="https://docs.docker.com/engine/install/">Docker Engine</a> and the <a href="https://docs.docker.com/compose/install/linux/">compose plugin</a>, and a user in the <a href="https://docs.docker.com/engine/install/linux-postinstall/"><code>docker</code> group</a> to run the scripts.</li>
 <li>About 4 GB of disk for the game server files.</li>
 <li>UDP ports 2456–2457 forwarded to the host. See <a href="guides/players/">Players, Admins and Bans</a>.</li>
 <li>CPU and memory for your player count:</li>

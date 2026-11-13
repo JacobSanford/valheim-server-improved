@@ -402,11 +402,17 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="sleep-when-idle"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.</span> Sleep When Idle</h1>
-<p>Sleep when idle is off by default. When it's on, a small extra container, <a href="https://github.com/vmorganp/Lazytainer">Lazytainer</a>, takes over ports 2456–2457 and counts the packets on them. After 20 minutes with too little traffic, it stops the server. When packets arrive again, it starts it.</p>
+<p>Sleep when idle is off by default. When it's on, a small extra container, <a href="https://github.com/vmorganp/Lazytainer">Lazytainer</a>, takes over ports 2456–2457 and counts the packets on them. Lazytainer counts the packets of the last 20 minutes. Once that count has stayed under 10 for another 20 minutes, it stops the server, about 40 minutes after the last player leaves. When more than 10 arrive within 20 minutes, it starts the server again.</p>
 <h2 id="before-you-turn-it-on"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.1</span> Before You Turn It On</h2>
 <ul>
-<li><strong>Lazytainer controls Docker.</strong> It needs the Docker socket to start and stop the server, and read-only mounting doesn't limit what the socket can do. Anyone who takes over that container controls the host.</li>
-<li><strong>A public server may never sleep.</strong> Server browsers and internet scans also send packets to the game ports. If they reach the threshold, the server stays awake.</li>
+<li><strong>Lazytainer controls Docker.</strong> It needs the Docker socket to start and stop the server, and read-only mounting doesn't limit what the socket can do. Anyone who takes over that container controls the host; see Docker's <a href="https://docs.docker.com/engine/security/">security notes</a> on the daemon's attack surface.</li>
+<li>
+<p><strong>A public server may never sleep.</strong> Server browsers and internet scans also send packets to the game ports. If they reach the threshold, the server stays awake. This hasn't been tested on a server reachable from the internet. If the idle count in <code>./logs.sh</code> keeps resetting before it reaches <code>SLEEP_AFTER_SECONDS</code>, raise <code>SLEEP_MIN_PACKETS</code>, or set <code>SERVER_PUBLIC=false</code> so the server isn't listed in the server browser.</p>
+</li>
+<li>
+<p><strong>Crossplay needs its port in the sleep file too.</strong> The sleep file replaces the Valheim container's ports, and its <code>2458:2458/udp</code> line is commented out. With <code>CROSSPLAY=true</code>, uncomment it in <code>docker-compose.sleep.yml</code> as well. Lazytainer counts only ports 2456–2457.</p>
+</li>
+<li><strong>Docker Compose 2.18 or later.</strong> The sleep file uses Compose's <a href="https://docs.docker.com/reference/compose-file/merge/"><code>!reset</code> tag</a>, which older versions reject.</li>
 </ul>
 <h2 id="turn-it-on"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.2</span> Turn It On</h2>
 <ol>
@@ -419,12 +425,12 @@
 <p>Run <code>./restart.sh</code>, then press Ctrl+C to leave the log view.</p>
 </li>
 </ol>
-<p><code>./logs.sh</code> now also shows Lazytainer counting idle time, for example <code>300 / 1200 seconds without an active client or sufficient traffic on running container</code>. While the server sleeps, <code>docker compose ps</code> shows it as <code>exited</code> or <code>paused</code>, with health <code>unhealthy</code>; that's expected, and it turns <code>healthy</code> again after it wakes.</p>
-<p>The scripts add <code>docker-compose.sleep.yml</code> for you. To run <code>docker compose</code> yourself, add it too:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="nv">COMPOSE_FILE</span><span class="o">=</span>docker-compose.yml:docker-compose.sleep.yml<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>ps
+<p><code>./logs.sh</code> now also shows Lazytainer counting idle time, for example <code>300 / 1200 seconds without an active client or sufficient traffic on running container</code>. While the server sleeps, <code>docker compose ps -a</code> shows it as <code>exited</code> (stop) or <code>paused</code>. Plain <code>docker compose ps</code> leaves out a stopped server. Its health reads <code>unhealthy</code> until it wakes; that's expected.</p>
+<p>The scripts add <code>docker-compose.sleep.yml</code> for you and pass it the <code>SLEEP_</code> settings from <code>env/valheim.env</code>. To run <code>docker compose</code> yourself, add the file too, as below. Start the server with <code>./restart.sh</code>, though: a hand-run <code>docker compose up</code> doesn't read those settings and uses the defaults.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="nv">COMPOSE_FILE</span><span class="o">=</span>docker-compose.yml:docker-compose.sleep.yml<span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>ps<span class="w"> </span>-a
 </span></code></pre></div>
 <h2 id="what-players-see"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.3</span> What Players See</h2>
-<p>While the server sleeps, it isn't in the <strong>Community</strong> list, so players join with <strong>Join IP</strong>. Their first attempt wakes the server.</p>
+<p>While the server sleeps, it isn't in the <strong>Community</strong> list, so players join with <strong>Join IP</strong>. Their first attempt should wake the server; this hasn't been tested with the game itself.</p>
 <p>The wake times were measured with a private test server and small world: from the first packet to <code>healthy</code> took 30–36 seconds when stopped, and the paused server was running again 6 seconds after it. A game update at wake adds its download time. How many packets a real join attempt sends wasn't measured; if one doesn't wake the server, lower <code>SLEEP_MIN_PACKETS</code>.</p>
 <table>
 <thead>
@@ -432,7 +438,7 @@
 <th><code>SLEEP_METHOD</code></th>
 <th>Memory while asleep</th>
 <th>Wake</th>
-<th>First join attempt</th>
+<th>First join attempt (expected)</th>
 </tr>
 </thead>
 <tbody>
@@ -463,7 +469,7 @@
 <tr>
 <td>Game updates</td>
 <td>Checked at every wake, which takes longer when there is one</td>
-<td>Checked only while awake. The 20 minutes before sleeping are longer than the 15-minute update interval, so each sleep follows an update check</td>
+<td>Checked only while awake. The 40 minutes or so before sleeping are longer than the 15-minute update interval, so each sleep follows an update check</td>
 </tr>
 <tr>
 <td>Backups</td>
@@ -487,7 +493,7 @@
 </tr>
 </tbody>
 </table>
-<p>The image deletes backups older than <code>BACKUPS_MAX_AGE</code> at each backup, including the one at wake. With the default of 30 days, a wake after weeks asleep still keeps the last backups, but after more than 30 days asleep only the wake's own backup is left. Raise <code>BACKUPS_MAX_AGE</code> if the server may sleep longer.</p>
+<p>The image deletes backups older than <code>BACKUPS_MAX_AGE</code> at each backup, including the one at wake. The env example sets <code>BACKUPS_MAX_AGE=30</code>; the image's own default is 3. With 30, a wake after weeks asleep still keeps the last backups, but after more than 30 days asleep only the wake's own backup is left. Raise <code>BACKUPS_MAX_AGE</code> if the server may sleep longer.</p>
 <h2 id="tune-it"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.5</span> Tune It</h2>
 <table>
 <thead>

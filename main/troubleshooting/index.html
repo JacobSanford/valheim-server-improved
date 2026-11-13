@@ -449,7 +449,7 @@
 </tbody>
 </table>
 <h2 id="the-server-stays-unhealthy"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.2</span> The Server Stays Unhealthy</h2>
-<p>If <code>docker compose ps</code> shows <code>unhealthy</code>, or still shows <code>health: starting</code> a few minutes after the download finishes, read the log with <code>./logs.sh</code>. The healthcheck allows the first start 15 minutes for the download.</p>
+<p>If <code>docker compose ps</code> shows <code>unhealthy</code>, or still shows <code>health: starting</code> a few minutes after the download finishes, read the log with <code>./logs.sh</code>. The healthcheck allows the first start 15 minutes for the download. With <code>SLEEP_WHEN_IDLE=true</code>, <code>unhealthy</code> is also expected while the server sleeps; see <a href="../guides/sleep/">Sleep When Idle</a>.</p>
 <p>If the log shows <code>Steamcmd needs to be online to update</code>, the container can't reach the internet, so it can't download the game. Check from inside the container:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>valheim<span class="w"> </span>curl<span class="w"> </span>-sS<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">'%{http_code}\n'</span><span class="w"> </span>https://api.steampowered.com/
 </span></code></pre></div>

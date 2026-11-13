@@ -450,7 +450,7 @@
 <li><strong>Wipes archive first.</strong> <code>wipe-restart.sh</code> asks you to type the world name, checks it can delete everything before it deletes anything, then saves <code>data/</code> and <code>backups/</code> to a <code>.tar.gz</code> in <code>wipe-archives/</code>.</li>
 <li><strong>Wipes keep your admins.</strong> The admin, ban and permitted lists survive a wipe.</li>
 <li><strong>Restores are documented.</strong> <a href="../guides/backups/">Backups and Wipes</a> has step-by-step restores from an hourly backup and from a wipe archive. Upstream documents none.</li>
-<li><strong>Idle hours don't push out real backups.</strong> <code>BACKUPS_IF_IDLE=false</code> stops backups an hour after the last player leaves. The image's default (<code>true</code>) keeps backing up while nobody plays, so with a 12-backup limit, one idle night replaces every backup of the last session. <code>hooks/idle-backups.sh</code> also stops each restart from adding a backup of idle time.</li>
+<li><strong>Idle hours don't push out real backups.</strong> <code>BACKUPS_IF_IDLE=false</code> stops backups an hour after the last player leaves. The image's default (<code>true</code>) keeps backing up while nobody plays, so with a 12-backup limit, one idle night replaces every backup of the last session. At each restart, <code>hooks/idle-backups.sh</code> also deletes the previous backup if nobody has played since it, so restarts don't pile up backups of idle time.</li>
 </ul>
 <h2 id="operations"><span class="enumerate-headings-plugin enumerate-heading-plugin">8.3</span> Operations</h2>
 <table>
@@ -495,17 +495,17 @@
 <tr>
 <td>Idle servers</td>
 <td>Always running</td>
-<td>Optional sleep when idle: stops the server when nobody plays and starts it on the next connection attempt</td>
+<td>Optional <a href="../guides/sleep/">sleep when idle</a>: stops the server when nobody plays and starts it on the next connection attempt</td>
 </tr>
 <tr>
 <td>Backup history</td>
 <td>Every container start adds a backup, so restarts push out older ones</td>
-<td>Backups taken while nobody played replace each other instead of piling up</td>
+<td><a href="../guides/backups/">Backups</a> taken while nobody played replace each other instead of piling up</td>
 </tr>
 <tr>
 <td>Notifications</td>
 <td>Hand-written <code>curl</code> commands in hook variables, with quoting examples per shell</td>
-<td>Discord built in and off by default: set a webhook and list the events. Messages are JSON-escaped, and player names can't ping <code>@everyone</code>. Other services plug in as adapters.</td>
+<td><a href="../guides/notifications/">Discord notifications</a> built in and off by default: set a webhook and list the events. Messages are JSON-escaped, and player names can't ping <code>@everyone</code>. Other services plug in as adapters.</td>
 </tr>
 </tbody>
 </table>
