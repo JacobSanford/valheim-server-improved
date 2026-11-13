@@ -9,7 +9,7 @@
 <meta content="Jacob Sanford" name="author"/>
 <link href="https://jacobsanford.github.io/valheim-server-improved/main/guides/backups/" rel="canonical"/>
 <link href="../notifications/" rel="prev"/>
-<link href="../../troubleshooting/" rel="next"/>
+<link href="../sleep/" rel="next"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.8.1" name="generator"/>
 <title>Backups and Wipes - valheim-server-improved</title>
@@ -266,6 +266,18 @@
 </ul>
 </nav>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../sleep/">
+<span class="md-ellipsis">
+    
+  
+    Sleep When Idle
+  
+
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -354,7 +366,8 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="backups-and-wipes"><span class="enumerate-headings-plugin enumerate-heading-plugin">4.</span> Backups and Wipes</h1>
-<p>The server writes a backup of the world to <code>backups/</code> each time the container starts and at 5 minutes past each hour, keeping at most 12 and none older than 3 days. Backups stop an hour after the last player leaves, so idle hours don't push out real ones.</p>
+<p>The server writes a backup of the world to <code>backups/</code> each time the container starts and at 5 minutes past each hour, keeping at most 12 and none older than 30 days. Backups stop an hour after the last player leaves.</p>
+<p>A running server saves the world even when nobody is on, so every restart adds a backup that differs from the last one only by idle time. When nobody has played since the previous backup, <code>hooks/idle-backups.sh</code> deletes that previous one and keeps the new one, so restarts and idle hours can't push out backups of real play.</p>
 <p>Run every command from the repository root, and replace the placeholders:</p>
 <table>
 <thead>

@@ -8,7 +8,7 @@
 <meta content="Fix a server that won't start, stays unhealthy, or can't send notifications" name="description"/>
 <meta content="Jacob Sanford" name="author"/>
 <link href="https://jacobsanford.github.io/valheim-server-improved/main/troubleshooting/" rel="canonical"/>
-<link href="../guides/backups/" rel="prev"/>
+<link href="../guides/sleep/" rel="prev"/>
 <link href="../reference/" rel="next"/>
 <link href="../assets/images/favicon.png" rel="icon"/>
 <meta content="mkdocs-1.6.1, mkdocs-material-9.8.1" name="generator"/>
@@ -219,6 +219,18 @@
   </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../guides/sleep/">
+<span class="md-ellipsis">
+    
+  
+    Sleep When Idle
+  
+
+    
+  </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -265,6 +277,15 @@
 <span class="md-ellipsis">
       
         The Server Stays Unhealthy
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#the-server-doesnt-wake">
+<span class="md-ellipsis">
+      
+        The Server Doesn't Wake
       
     </span>
 </a>
@@ -356,6 +377,15 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#the-server-doesnt-wake">
+<span class="md-ellipsis">
+      
+        The Server Doesn't Wake
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#the-status-page-shows-an-error">
 <span class="md-ellipsis">
       
@@ -389,8 +419,8 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="troubleshooting"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.</span> Troubleshooting</h1>
-<h2 id="restartsh-refuses-to-start"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.1</span> <code>restart.sh</code> Refuses to Start</h2>
+<h1 id="troubleshooting"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.</span> Troubleshooting</h1>
+<h2 id="restartsh-refuses-to-start"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.1</span> <code>restart.sh</code> Refuses to Start</h2>
 <p>It checks <code>env/valheim.env</code> before starting and names the problem:</p>
 <table>
 <thead>
@@ -418,19 +448,21 @@
 </tr>
 </tbody>
 </table>
-<h2 id="the-server-stays-unhealthy"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.2</span> The Server Stays Unhealthy</h2>
+<h2 id="the-server-stays-unhealthy"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.2</span> The Server Stays Unhealthy</h2>
 <p>If <code>docker compose ps</code> shows <code>unhealthy</code>, or still shows <code>health: starting</code> a few minutes after the download finishes, read the log with <code>./logs.sh</code>. The healthcheck allows the first start 15 minutes for the download.</p>
 <p>If the log shows <code>Steamcmd needs to be online to update</code>, the container can't reach the internet, so it can't download the game. Check from inside the container:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>valheim<span class="w"> </span>curl<span class="w"> </span>-sS<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">'%{http_code}\n'</span><span class="w"> </span>https://api.steampowered.com/
 </span></code></pre></div>
 <p>Any HTTP status, such as <code>404</code>, means it can connect. A timeout means something on the host blocks traffic from Docker networks, such as a VPN client or a firewall that only allows Docker's default bridge.</p>
-<h2 id="the-status-page-shows-an-error"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.3</span> The Status Page Shows an Error</h2>
+<h2 id="the-server-doesnt-wake"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.3</span> The Server Doesn't Wake</h2>
+<p>With <code>SLEEP_WHEN_IDLE=true</code>, a join attempt has to send more than <code>SLEEP_MIN_PACKETS</code> packets to ports 2456–2457 to wake the server. Lower <code>SLEEP_MIN_PACKETS</code> and run <code>./restart.sh</code>. Players must use <strong>Join IP</strong>, because a sleeping server isn't in the <strong>Community</strong> list. See <a href="../guides/sleep/">Sleep When Idle</a>.</p>
+<h2 id="the-status-page-shows-an-error"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.4</span> The Status Page Shows an Error</h2>
 <p><code>status.json</code> reports <code>error</code> until the server answers status queries, so expect one for the first minute. It reports the server only while <code>SERVER_PUBLIC=true</code>, so for a private server, use <code>docker compose ps</code> instead.</p>
-<h2 id="wipe-restartsh-says-a-folder-is-not-writable"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.4</span> <code>wipe-restart.sh</code> Says a Folder Is Not Writable</h2>
+<h2 id="wipe-restartsh-says-a-folder-is-not-writable"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.5</span> <code>wipe-restart.sh</code> Says a Folder Is Not Writable</h2>
 <p>Some files under <code>data/</code> or <code>backups/</code> belong to another user, often root from a run without <code>PUID</code>/<code>PGID</code>. Nothing was deleted. Take ownership, then run the wipe again:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a>sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>id<span class="w"> </span>-u<span class="k">)</span><span class="s2">:</span><span class="k">$(</span>id<span class="w"> </span>-g<span class="k">)</span><span class="s2">"</span><span class="w"> </span>data<span class="w"> </span>backups
 </span></code></pre></div>
-<h2 id="notifications-dont-arrive"><span class="enumerate-headings-plugin enumerate-heading-plugin">5.5</span> Notifications Don't Arrive</h2>
+<h2 id="notifications-dont-arrive"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.6</span> Notifications Don't Arrive</h2>
 <p>Run <code>./notify-test.sh</code>. It prints the reason a send failed:</p>
 <table>
 <thead>
