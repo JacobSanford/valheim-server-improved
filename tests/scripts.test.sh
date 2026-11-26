@@ -82,6 +82,18 @@ run restart.sh
 assert_contains "${CALLS}" "up -d --force-recreate --remove-orphans [COMPOSE_FILE=${SLEEP_FILES} M=stop T=1200 P=10]" \
   "sleep on: adds the sleep file with the default settings"
 
+checkout sleep-override "${OK[@]}" "SLEEP_WHEN_IDLE=true"
+touch "${DIR}/docker-compose.override.yml"
+run restart.sh
+assert_contains "${CALLS}" "up -d --force-recreate --remove-orphans [COMPOSE_FILE=${SLEEP_FILES}:docker-compose.override.yml " \
+  "sleep on: adds docker-compose.override.yml last when it exists"
+
+checkout sleep-off-override "${OK[@]}" "SLEEP_WHEN_IDLE=false"
+touch "${DIR}/docker-compose.override.yml"
+run restart.sh
+assert_contains "${CALLS}" "up -d --force-recreate --remove-orphans [COMPOSE_FILE= " \
+  "sleep off: leaves COMPOSE_FILE unset, so Compose loads the override file itself"
+
 section "sleep settings"
 checkout sleep-custom "${OK[@]}" "SLEEP_WHEN_IDLE=true" "SLEEP_METHOD=pause" "SLEEP_AFTER_SECONDS=0900" 'SLEEP_MIN_PACKETS="20"'
 run logs.sh

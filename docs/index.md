@@ -37,4 +37,4 @@ Vanilla Valheim allows at most 10 players at once. Most of the server's CPU load
 
 ### Container Limits
 
-By default, `docker-compose.yml` caps the container at 8 GB of memory, reserves 4 GB, and leaves CPU unlimited. To change this, edit `deploy.resources`; to remove the limits, delete the `deploy:` block.
+By default, `docker-compose.yml` caps the container at 8 GB of memory, sets a 4 GB memory reservation (a soft limit Docker applies when the host runs short of memory), and leaves CPU unlimited. To change them, put your own `deploy.resources` for the `valheim` service in a `docker-compose.override.yml` beside `docker-compose.yml`. Compose merges that file over `docker-compose.yml`, the scripts load it in sleep mode too, and git ignores it, so `git pull` keeps your change. To remove the limits, set `deploy: !reset null` for the service there. See Docker's [merge rules](https://docs.docker.com/reference/compose-file/merge/).

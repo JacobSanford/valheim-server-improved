@@ -22,8 +22,9 @@ env_value() {
 }
 
 # compose_setup: point every later `docker compose` call at the right files.
-# With SLEEP_WHEN_IDLE=true, docker-compose.sleep.yml is added on top, and the
-# sleep settings are exported for its ${...} labels. Without an env file it does
+# With SLEEP_WHEN_IDLE=true, docker-compose.sleep.yml is added on top, followed
+# by docker-compose.override.yml when it exists, and the sleep settings are
+# exported for its ${...} labels. Without an env file it does
 # nothing, so stop.sh and logs.sh still work on a half-set-up checkout.
 compose_setup() {
   [[ -f "${ENV_FILE}" ]] || return 0
@@ -50,7 +51,11 @@ compose_setup() {
   fi
 
   export SLEEP_METHOD SLEEP_AFTER_SECONDS SLEEP_MIN_PACKETS
-  export COMPOSE_FILE="docker-compose.yml:docker-compose.sleep.yml"
+  # Setting COMPOSE_FILE turns off Compose's automatic loading of
+  # docker-compose.override.yml, so add it by hand, last, so local edits win.
+  COMPOSE_FILE="docker-compose.yml:docker-compose.sleep.yml"
+  [[ ! -f docker-compose.override.yml ]] || COMPOSE_FILE+=":docker-compose.override.yml"
+  export COMPOSE_FILE
 }
 
 # check_backup_settings: refuse settings under which BACKUPS_KEEP_MIN can't work.

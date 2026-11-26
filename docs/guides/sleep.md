@@ -31,7 +31,7 @@ Sleep when idle is off by default. When it's on, a small extra container, [Lazyt
 
 `./logs.sh` now also shows Lazytainer counting idle time, for example `300 / 1200 seconds without an active client or sufficient traffic on running container`. While the server sleeps, `docker compose ps -a` shows it as `exited` (stop) or `paused`. Plain `docker compose ps` leaves out a stopped server. Its health reads `unhealthy` until it wakes; that's expected.
 
-The scripts add `docker-compose.sleep.yml` for you and pass it the `SLEEP_` settings from `env/valheim.env`. To run `docker compose` yourself, add the file too, as below. Start the server with `./restart.sh`, though: a hand-run `docker compose up` doesn't read those settings and uses the defaults.
+The scripts add `docker-compose.sleep.yml` for you and pass it the `SLEEP_` settings from `env/valheim.env`. To run `docker compose` yourself, add the file too, as below, and `docker-compose.override.yml` after it if you have one. Start the server with `./restart.sh`, though: a hand-run `docker compose up` doesn't read those settings and uses the defaults.
 
 ```bash
 COMPOSE_FILE=docker-compose.yml:docker-compose.sleep.yml docker compose ps -a
