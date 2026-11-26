@@ -11,7 +11,7 @@
 <link href="../notifications/" rel="prev"/>
 <link href="../sleep/" rel="next"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
-<meta content="mkdocs-1.6.1, mkdocs-material-9.8.1" name="generator"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.8.2" name="generator"/>
 <title>Backups and Wipes - valheim-server-improved</title>
 <link href="../../assets/stylesheets/main.57a0d79d.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.fb2fffe2.min.css" rel="stylesheet"/>
@@ -26,7 +26,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#backups-and-wipes">
+<a class="md-skip" href="#restore-wipe-and-keep-backups">
           Skip to content
         </a>
 </div>
@@ -383,9 +383,10 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="backups-and-wipes"><span class="enumerate-headings-plugin enumerate-heading-plugin">4.</span> Backups and Wipes</h1>
+<h1 id="restore-wipe-and-keep-backups"><span class="enumerate-headings-plugin enumerate-heading-plugin">4.</span> Restore, Wipe and Keep Backups</h1>
+<p>Use this page when you need to roll the world back to an earlier backup, start a new world, or change how long backups are kept.</p>
 <p>The server writes a backup of the world to <code>backups/</code> each time the container starts and at 5 minutes past each hour, keeping at most 12. Backups older than 30 days are deleted, but the newest 3 are always kept, however old. Backups stop an hour after the last player leaves.</p>
-<p>A running server saves the world even when nobody is on, so every restart adds a backup that differs from the last one only by idle time. When nobody has played since the previous backup, <code>hooks/idle-backups.sh</code> deletes that previous one and keeps the new one, so restarts and idle hours can't push out backups of real play.</p>
+<p>A running server saves the world even when nobody is on, so every restart adds a backup that differs from the last one only by idle time. When nobody has played since the previous backup, <code>hooks/idle-backups.sh</code> deletes that previous one and keeps the new one. Restarts and idle hours then can't push out backups of real play.</p>
 <p>Run every command from the repository root, and replace the placeholders:</p>
 <table>
 <thead>
@@ -406,7 +407,7 @@
 </tbody>
 </table>
 <h2 id="restore-an-hourly-backup"><span class="enumerate-headings-plugin enumerate-heading-plugin">4.1</span> Restore an Hourly Backup</h2>
-<p>Each file in <code>backups/</code> is a zip of the world, named <code>worlds-&lt;YYYYMMDD-HHMMSS&gt;.zip</code>. The current world is moved to <code>wipe-archives/</code>, not deleted. The commands need <code>unzip</code> installed on the host.</p>
+<p>Each file in <code>backups/</code> is a zip of the world, with a file name of the form <code>worlds-&lt;YYYYMMDD-HHMMSS&gt;.zip</code>. The commands move the current world to <code>wipe-archives/</code> and keep it there. The commands need <code>unzip</code> installed on the host. <strong>If any command fails, stop and do not run <code>./restart.sh</code>:</strong> with no world in <code>data/worlds_local/</code>, the server starts a new one.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a>./stop.sh
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>restore-tmp<span class="w"> </span>wipe-archives
 </span><span id="__span-0-3"><a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a>unzip<span class="w"> </span>-q<span class="w"> </span>backups/worlds-&lt;YYYYMMDD-HHMMSS&gt;.zip<span class="w"> </span>-d<span class="w"> </span>restore-tmp
@@ -416,17 +417,17 @@
 </span><span id="__span-0-7"><a href="#__codelineno-0-7" id="__codelineno-0-7" name="__codelineno-0-7"></a>./restart.sh
 </span></code></pre></div>
 <h2 id="wipe-the-world"><span class="enumerate-headings-plugin enumerate-heading-plugin">4.2</span> Wipe the World</h2>
-<p><code>wipe-restart.sh</code> deletes every world, not only <code>&lt;WORLD_NAME&gt;</code>: everything in <code>data/worlds_local/</code>, in <code>data/worlds/</code> if present, and in <code>backups/</code>. It keeps the admin, ban and permitted lists. Before deleting, it asks you to type the world name, checks it can delete everything, and saves <code>data/</code> and <code>backups/</code> to <code>wipe-archives/&lt;WORLD_NAME&gt;-&lt;YYYYMMDD-HHMMSS&gt;.tar.gz</code>. It then starts a new world.</p>
+<p><code>wipe-restart.sh</code> deletes every world, not only <code>&lt;WORLD_NAME&gt;</code>: everything in <code>data/worlds_local/</code>, in <code>data/worlds/</code> if present, and in <code>backups/</code>. It keeps the admin, ban and permitted lists. Before deleting, it checks it can delete everything, asks you to type the world name, stops the server, and saves <code>data/</code> and <code>backups/</code> to <code>wipe-archives/&lt;WORLD_NAME&gt;-&lt;YYYYMMDD-HHMMSS&gt;.tar.gz</code>. It then starts a new world.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a>./wipe-restart.sh
 </span></code></pre></div>
 <h2 id="restore-a-wipe-archive"><span class="enumerate-headings-plugin enumerate-heading-plugin">4.3</span> Restore a Wipe Archive</h2>
-<p>A wipe archive holds <code>data/</code> and <code>backups/</code> as they were before the wipe. Restoring it deletes everything in <code>data/</code>, including the current world and the player lists, without archiving them first. The old world's backups return to <code>backups/</code>, beside any made since the wipe.</p>
+<p>A wipe archive holds <code>data/</code> and <code>backups/</code> as they were before the wipe. Restoring it deletes everything in <code>data/</code>, including the current world and the player lists, without archiving them first. If another user, often root, owns files under <code>data/</code>, <code>rm</code> fails part way; take ownership first as in <a href="../../troubleshooting/">Troubleshooting</a>. The old world's backups return to <code>backups/</code>, beside any made since the wipe. From the next backup on, <code>BACKUPS_MAX_COUNT</code> and <code>BACKUPS_KEEP_DAYS</code> count them together with the newer ones, so most of the old world's backups are deleted.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a href="#__codelineno-2-1" id="__codelineno-2-1" name="__codelineno-2-1"></a>./stop.sh
 </span><span id="__span-2-2"><a href="#__codelineno-2-2" id="__codelineno-2-2" name="__codelineno-2-2"></a>rm<span class="w"> </span>-rf<span class="w"> </span>data/*
 </span><span id="__span-2-3"><a href="#__codelineno-2-3" id="__codelineno-2-3" name="__codelineno-2-3"></a>tar<span class="w"> </span>-xzf<span class="w"> </span><span class="s2">"wipe-archives/&lt;WORLD_NAME&gt;-&lt;YYYYMMDD-HHMMSS&gt;.tar.gz"</span>
 </span><span id="__span-2-4"><a href="#__codelineno-2-4" id="__codelineno-2-4" name="__codelineno-2-4"></a>./restart.sh
 </span></code></pre></div>
-<p>After any restore, check the log shows <code>Game server connected</code>.</p>
+<p>After any restore or wipe, <code>./restart.sh</code> follows the log. Check it shows <code>Game server connected</code>, then press Ctrl+C to leave the log; the server keeps running.</p>
 <h2 id="change-how-long-backups-are-kept"><span class="enumerate-headings-plugin enumerate-heading-plugin">4.4</span> Change How Long Backups Are Kept</h2>
 <p>Set these in <code>env/valheim.env</code>, then run <code>./restart.sh</code>:</p>
 <table>
@@ -446,7 +447,7 @@
 <tr>
 <td><code>BACKUPS_KEEP_MIN</code></td>
 <td><code>3</code></td>
-<td>Never deletes the newest this many backups for age, so a server left off for months still has them.</td>
+<td>Always keeps this many of the newest backups, however old, so a server left off for months still has them.</td>
 </tr>
 <tr>
 <td><code>BACKUPS_MAX_COUNT</code></td>
@@ -455,7 +456,7 @@
 </tr>
 </tbody>
 </table>
-<p>The image's own age limit, <code>BACKUPS_MAX_AGE</code>, deletes every backup older than it, even the last one. So the env example turns it off with <code>BACKUPS_MAX_AGE=36500</code> (100 years), and <code>hooks/idle-backups.sh</code> applies <code>BACKUPS_KEEP_DAYS</code> and <code>BACKUPS_KEEP_MIN</code> after each backup instead. <code>restart.sh</code> refuses to start while either is set and <code>BACKUPS_MAX_AGE</code> is lower than 36500, or when <code>BACKUPS_KEEP_MIN</code> is larger than <code>BACKUPS_MAX_COUNT</code>.</p>
+<p>The image's own age limit, <code>BACKUPS_MAX_AGE</code>, deletes every backup older than it, even the last one. So the env example turns it off with <code>BACKUPS_MAX_AGE=36500</code> (100 years), and <code>hooks/idle-backups.sh</code> applies <code>BACKUPS_KEEP_DAYS</code> and <code>BACKUPS_KEEP_MIN</code> after each backup. <code>restart.sh</code> refuses to start while either is set and <code>BACKUPS_MAX_AGE</code> is unset or lower than 36500, or when <code>BACKUPS_KEEP_MIN</code> is larger than <code>BACKUPS_MAX_COUNT</code>.</p>
 <p>To use the image's age limit instead, remove <code>BACKUPS_KEEP_DAYS</code> and <code>BACKUPS_KEEP_MIN</code> and set <code>BACKUPS_MAX_AGE</code> to the number of days.</p>
 </article>
 </div>

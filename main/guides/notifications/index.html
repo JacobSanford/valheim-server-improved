@@ -11,7 +11,7 @@
 <link href="../players/" rel="prev"/>
 <link href="../backups/" rel="next"/>
 <link href="../../assets/images/favicon.png" rel="icon"/>
-<meta content="mkdocs-1.6.1, mkdocs-material-9.8.1" name="generator"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.8.2" name="generator"/>
 <title>Discord Notifications - valheim-server-improved</title>
 <link href="../../assets/stylesheets/main.57a0d79d.min.css" rel="stylesheet"/>
 <link href="../../assets/stylesheets/palette.fb2fffe2.min.css" rel="stylesheet"/>
@@ -26,7 +26,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#discord-notifications">
+<a class="md-skip" href="#post-server-events-to-discord">
           Skip to content
         </a>
 </div>
@@ -401,21 +401,22 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="discord-notifications"><span class="enumerate-headings-plugin enumerate-heading-plugin">3.</span> Discord Notifications</h1>
-<p>Notifications are off until you turn them on.</p>
+<h1 id="post-server-events-to-discord"><span class="enumerate-headings-plugin enumerate-heading-plugin">3.</span> Post Server Events to Discord</h1>
+<p>Use this guide when you want the server to post events, such as starting, shutting down and a player spawning, to a Discord channel. Notifications are off until you turn them on. These steps start from a server set up with the <a href="../../quickstart/">Quickstart</a>.</p>
 <h2 id="turn-them-on"><span class="enumerate-headings-plugin enumerate-heading-plugin">3.1</span> Turn Them On</h2>
+<p>Create a webhook in Discord, set it in <code>env/valheim.env</code>, restart the server, then send a test message.</p>
 <ol>
-<li>In Discord, open <strong>Server Settings</strong> → <strong>Integrations</strong> → <strong>Webhooks</strong>, create a webhook for the channel you want, and copy its URL. Discord's <a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks">Intro to Webhooks</a> shows the steps.</li>
+<li><strong>Create a Discord webhook.</strong> Open <strong>Server Settings</strong> → <strong>Integrations</strong> → <strong>Webhooks</strong>, create a webhook for the channel you want, and copy its URL. <strong>Integrations</strong> requires the <strong>Manage Webhooks</strong> permission on that Discord server. Discord's <a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks">Intro to Webhooks</a> shows the steps.</li>
 <li>
-<p>In <code>env/valheim.env</code>, set the webhook and list the events you want, comma separated:</p>
+<p><strong>Set the webhook and events in <code>env/valheim.env</code>.</strong> List the <a href="#events">events</a> you want, comma separated, and paste the webhook URL:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nv">NOTIFY_EVENTS</span><span class="o">=</span>server_up,server_down,player_spawned
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="nv">NOTIFY_DISCORD_WEBHOOK</span><span class="o">=</span>https://discord.com/api/webhooks/...
 </span></code></pre></div>
 </li>
 <li>
-<p>Run <code>./restart.sh</code>, then press Ctrl+C to leave the log view. The server keeps running.</p>
+<p><strong>Restart the server.</strong> Run <code>./restart.sh</code>, then press Ctrl+C to leave the log view. The server keeps running.</p>
 </li>
-<li>Run <code>./notify-test.sh</code>. It sends a test message whatever <code>NOTIFY_EVENTS</code> says. On success it prints <code>notify: discord: sent</code>; on failure it prints the reason, for example <code>discord: HTTP 401: Invalid Webhook Token</code>, and exits non-zero.</li>
+<li><strong>Send a test message.</strong> Run <code>./notify-test.sh</code>. It sends the message whatever <code>NOTIFY_EVENTS</code> says. On success it prints <code>notify: discord: sent</code>; on failure it prints the reason, for example <code>discord: HTTP 401: Invalid Webhook Token</code>, and exits non-zero. If it fails, see <a href="../../troubleshooting/#notifications-dont-arrive">Notifications Don't Arrive</a>.</li>
 </ol>
 <p>The webhook URL lets anyone post to your channel. Keep it in <code>env/valheim.env</code>, which git ignores and only you can read.</p>
 <h2 id="events"><span class="enumerate-headings-plugin enumerate-heading-plugin">3.2</span> Events</h2>
@@ -437,7 +438,7 @@
 </tr>
 <tr>
 <td><code>restart</code></td>
-<td>The server restarts to apply a game update. The daily <code>RESTART_CRON</code> restart sends <code>server_down</code> and <code>server_up</code> instead.</td>
+<td>The server restarts to apply a game update. <code>server_down</code> and <code>server_up</code> follow it. The daily <code>RESTART_CRON</code> restart sends only <code>server_down</code> and <code>server_up</code>.</td>
 </tr>
 <tr>
 <td><code>backup</code></td>
@@ -451,13 +452,13 @@
 </table>
 <p><code>NOTIFY_EVENTS=all</code> turns on every event. Messages are posted under the server's name; set <code>NOTIFY_DISCORD_USERNAME</code> to change it (Discord rejects names containing "discord").</p>
 <h2 id="when-sending-fails"><span class="enumerate-headings-plugin enumerate-heading-plugin">3.3</span> When Sending Fails</h2>
-<p>The server carries on. The reason goes to the container log (<code>./logs.sh</code>), with the HTTP status and Discord's reason but never the webhook URL. Each attempt gives up after 10 seconds, and failed messages are not retried.</p>
+<p>The server keeps running. The reason goes to the container log (<code>./logs.sh</code>), with the HTTP status and Discord's reason but never the webhook URL. Each attempt times out after 10 seconds, and failed messages are not retried.</p>
 <h2 id="keep-your-own-hook-commands"><span class="enumerate-headings-plugin enumerate-heading-plugin">3.4</span> Keep Your Own Hook Commands</h2>
-<p>The env example connects the image's event hooks, such as <code>POST_SERVER_LISTENING_HOOK</code>, to <code>notify/notify.sh</code>. Keep those lines when you copy settings across. To run your own command on the same event, append it after a <code>;</code>, in place of <code>&lt;YOUR_COMMAND&gt;</code>:</p>
+<p>The env example connects the image's event hooks, such as <code>POST_SERVER_LISTENING_HOOK</code>, to <code>notify/notify.sh</code>. Keep those lines in <code>env/valheim.env</code>; without them, those events send nothing. To run your own command on the same event, append it after a <code>;</code>, in place of <code>&lt;YOUR_COMMAND&gt;</code>:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="nv">PRE_RESTART_HOOK</span><span class="o">=</span>/opt/notify/notify.sh<span class="w"> </span>restart<span class="p">;</span><span class="w"> </span>&lt;YOUR_COMMAND&gt;
 </span></code></pre></div>
 <h2 id="add-another-service"><span class="enumerate-headings-plugin enumerate-heading-plugin">3.5</span> Add Another Service</h2>
-<p>Each service is an adapter: a file in <code>notify/adapters/</code> that defines two functions.</p>
+<p>Each service is an adapter: a <code>.sh</code> file in <code>notify/adapters/</code> that defines two functions. <code>notify.sh</code> sources every <code>.sh</code> file there for each event.</p>
 <table>
 <thead>
 <tr>
@@ -472,11 +473,11 @@
 </tr>
 <tr>
 <td><code>adapter_send EVENT MESSAGE</code></td>
-<td>Delivers <code>MESSAGE</code>. Exits non-zero on failure, with the reason on stderr.</td>
+<td>Delivers <code>MESSAGE</code>. Exits 1 on failure, with the reason on stderr. <code>notify.sh</code> reads exit status 2 as "not configured" and logs nothing.</td>
 </tr>
 </tbody>
 </table>
-<p><code>notify/adapters/discord.sh</code> is the example. <code>notify.sh</code> runs every enabled adapter for each event, so Discord and a new service can both be on at once.</p>
+<p><code>notify/adapters/discord.sh</code> is the example. <code>notify.sh</code> runs every configured adapter for each event, so Discord and a new service can both be on at once. After you set the new adapter's variable in <code>env/valheim.env</code>, run <code>./restart.sh</code> and then <code>./notify-test.sh</code>, which sends the test message through every configured adapter.</p>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

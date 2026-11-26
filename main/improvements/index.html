@@ -10,7 +10,7 @@
 <link href="https://jacobsanford.github.io/valheim-server-improved/main/improvements/" rel="canonical"/>
 <link href="../reference/" rel="prev"/>
 <link href="../assets/images/favicon.png" rel="icon"/>
-<meta content="mkdocs-1.6.1, mkdocs-material-9.8.1" name="generator"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.8.2" name="generator"/>
 <title>Improvements over Upstream - valheim-server-improved</title>
 <link href="../assets/stylesheets/main.57a0d79d.min.css" rel="stylesheet"/>
 <link href="../assets/stylesheets/palette.fb2fffe2.min.css" rel="stylesheet"/>
@@ -323,10 +323,10 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#what-is-not-different">
+<a class="md-nav__link" href="#what-stays-the-same">
 <span class="md-ellipsis">
       
-        What Is Not Different
+        What Stays the Same
       
     </span>
 </a>
@@ -385,10 +385,10 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#what-is-not-different">
+<a class="md-nav__link" href="#what-stays-the-same">
 <span class="md-ellipsis">
       
-        What Is Not Different
+        What Stays the Same
       
     </span>
 </a>
@@ -401,7 +401,7 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="improvements-over-upstream"><span class="enumerate-headings-plugin enumerate-heading-plugin">8.</span> Improvements over Upstream</h1>
-<p>valheim-server-improved runs the <a href="https://github.com/community-valheim-tools/valheim-server-docker">community-valheim-tools/valheim-server</a> image unchanged. The game server, the update and backup services, and the image's settings all come from upstream. What differs is the Compose file, the defaults in <code>env/valheim.env.example</code>, the helper scripts and the documentation.</p>
+<p>valheim-server-improved runs the <a href="https://github.com/community-valheim-tools/valheim-server-docker">community-valheim-tools/valheim-server</a> image unchanged. The game server, the update and backup services, and the image's settings all come from upstream. What differs is the Compose files, the defaults in <code>env/valheim.env.example</code>, the helper scripts, the hooks in <code>hooks/</code> and <code>notify/</code>, and the documentation. The optional sleep-when-idle mode adds a second image, Lazytainer (<code>ghcr.io/vmorganp/lazytainer</code>).</p>
 <p>Comparisons below are against upstream's <a href="https://github.com/community-valheim-tools/valheim-server-docker/blob/main/docker-compose.yaml"><code>docker-compose.yaml</code></a> and the image's <a href="https://github.com/community-valheim-tools/valheim-server-docker/blob/main/defaults"><code>defaults</code></a> file.</p>
 <h2 id="safer-defaults"><span class="enumerate-headings-plugin enumerate-heading-plugin">8.1</span> Safer Defaults</h2>
 <table>
@@ -447,11 +447,11 @@
 </table>
 <h2 id="fewer-ways-to-lose-data"><span class="enumerate-headings-plugin enumerate-heading-plugin">8.2</span> Fewer Ways to Lose Data</h2>
 <ul>
-<li><strong>Wipes archive first.</strong> <code>wipe-restart.sh</code> asks you to type the world name, checks it can delete everything before it deletes anything, then saves <code>data/</code> and <code>backups/</code> to a <code>.tar.gz</code> in <code>wipe-archives/</code>.</li>
+<li><strong>Wipes archive first.</strong> <code>wipe-restart.sh</code> checks it can delete everything before it deletes anything, asks you to type the world name, then saves <code>data/</code> and <code>backups/</code> to a <code>.tar.gz</code> in <code>wipe-archives/</code>.</li>
 <li><strong>Wipes keep your admins.</strong> The admin, ban and permitted lists survive a wipe.</li>
 <li><strong>Restores are documented.</strong> <a href="../guides/backups/">Backups and Wipes</a> has step-by-step restores from an hourly backup and from a wipe archive. Upstream documents none.</li>
-<li><strong>The newest backups survive any age limit.</strong> The image deletes every backup older than <code>BACKUPS_MAX_AGE</code>, even the last one. Here, <code>BACKUPS_KEEP_DAYS</code> deletes old backups but always keeps the newest <code>BACKUPS_KEEP_MIN</code> (3 in the env example), so a server left off for months still has them.</li>
-<li><strong>Idle hours don't push out real backups.</strong> <code>BACKUPS_IF_IDLE=false</code> stops backups an hour after the last player leaves. The image's default (<code>true</code>) keeps backing up while nobody plays, so with a 12-backup limit, one idle night replaces every backup of the last session. At each restart, <code>hooks/idle-backups.sh</code> also deletes the previous backup if nobody has played since it, so restarts don't pile up backups of idle time.</li>
+<li><strong>The newest backups survive any age limit.</strong> The image deletes every backup older than <code>BACKUPS_MAX_AGE</code> (3 days by default), even the last one. Here, <code>BACKUPS_KEEP_DAYS</code> deletes old backups but always keeps the newest <code>BACKUPS_KEEP_MIN</code> (3 in the env example), so a server left off for months still has them.</li>
+<li><strong>Backups of the last session survive idle hours.</strong> <code>BACKUPS_IF_IDLE=false</code> stops backups an hour after the last player leaves. The image's default (<code>true</code>) keeps backing up while nobody plays. With this setup's limit of 12 (<code>BACKUPS_MAX_COUNT=12</code>), one idle night would replace every backup of the last session. After each backup, including the one every container start takes, <code>hooks/idle-backups.sh</code> also deletes the previous backup if nobody has played since it.</li>
 </ul>
 <h2 id="operations"><span class="enumerate-headings-plugin enumerate-heading-plugin">8.3</span> Operations</h2>
 <table>
@@ -496,12 +496,12 @@
 <tr>
 <td>Idle servers</td>
 <td>Always running</td>
-<td>Optional <a href="../guides/sleep/">sleep when idle</a>: stops the server when nobody plays and starts it on the next connection attempt</td>
+<td>Optional <a href="../guides/sleep/">sleep when idle</a>: stops the server when nobody plays and starts it on the next connection attempt. The Lazytainer container it adds holds the Docker socket, and with it control of the host</td>
 </tr>
 <tr>
 <td>Backup history</td>
-<td>Every container start adds a backup, so restarts push out older ones</td>
-<td><a href="../guides/backups/">Backups</a> taken while nobody played replace each other instead of piling up</td>
+<td>Every container start adds a backup, and with no count limit (<code>BACKUPS_MAX_COUNT=0</code>) they pile up</td>
+<td><a href="../guides/backups/">Backups</a> taken while nobody played replace each other</td>
 </tr>
 <tr>
 <td>Notifications</td>
@@ -512,12 +512,12 @@
 </table>
 <h2 id="documentation"><span class="enumerate-headings-plugin enumerate-heading-plugin">8.4</span> Documentation</h2>
 <ul>
-<li>Admins, bans and the whitelist, including that <code>ADMINLIST_IDS</code> replaces the file's contents.</li>
+<li>Admins, bans and the whitelist (the permitted list), including that <code>ADMINLIST_IDS</code> replaces the file's contents.</li>
 <li>Resource sizing by player count.</li>
 <li>How players join, and the ports to forward.</li>
 <li>A pointer to the image's undocumented variables in its <code>defaults</code> file.</li>
 </ul>
-<h2 id="what-is-not-different"><span class="enumerate-headings-plugin enumerate-heading-plugin">8.5</span> What Is Not Different</h2>
+<h2 id="what-stays-the-same"><span class="enumerate-headings-plugin enumerate-heading-plugin">8.5</span> What Stays the Same</h2>
 <ul>
 <li><strong>Performance.</strong> Same image, same game server. Nothing here makes it faster.</li>
 <li><strong>Features.</strong> Mods, hooks, crossplay and everything else come from the image. Its <a href="https://github.com/community-valheim-tools/valheim-server-docker">README</a> remains the full reference.</li>

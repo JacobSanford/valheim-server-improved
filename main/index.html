@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -721,17 +721,17 @@
 <h1 id="valheim-server-improved">valheim-server-improved</h1>
 <p>valheim-server-improved is a ready-to-run Docker Compose setup for the <a href="https://github.com/community-valheim-tools/valheim-server-docker">community-valheim-tools/valheim-server</a> image. It uses that image unchanged and improves the setup around it:</p>
 <ul>
-<li>The server runs as your user, not root, and only the ports you need are open.</li>
+<li>The server runs as the user and group set in <code>PUID</code> and <code>PGID</code> (default 1000), and only the ports you need are open.</li>
 <li>A healthcheck reports <code>healthy</code> once the game is listening, and container logs are capped at about 30 MB.</li>
 <li><code>restart.sh</code> refuses to start with the example password or one the server would reject.</li>
-<li>Wipes archive everything first and keep your admins; <a href="guides/backups/">restores are documented</a>.</li>
+<li>A wipe archives everything first and keeps your admins; <a href="guides/backups/">restores are documented</a>.</li>
 <li><a href="guides/notifications/">Discord notifications</a> are built in and stay off until you turn them on.</li>
 <li>It can <a href="guides/sleep/">stop the server while nobody plays</a> and start it on the next connection attempt. This is also off until you turn it on.</li>
 </ul>
-<p><a href="improvements/">Improvements over Upstream</a> compares it with the upstream example point by point. To get started, see the <a href="quickstart/">Quick Start</a>.</p>
+<p><a href="improvements/">Improvements over Upstream</a> compares it with the upstream example point by point. Check the requirements below, then follow the <a href="quickstart/">Quick Start</a>.</p>
 <h2 id="requirements">Requirements</h2>
 <ul>
-<li>A Linux host with <a href="https://docs.docker.com/engine/install/">Docker Engine</a> and the <a href="https://docs.docker.com/compose/install/linux/">compose plugin</a>, and a user in the <a href="https://docs.docker.com/engine/install/linux-postinstall/"><code>docker</code> group</a> to run the scripts.</li>
+<li>A Linux host with <a href="https://docs.docker.com/engine/install/">Docker Engine</a> and the <a href="https://docs.docker.com/compose/install/linux/">compose plugin</a>, and a user in the <a href="https://docs.docker.com/engine/install/linux-postinstall/"><code>docker</code> group</a> to run the scripts. <a href="guides/sleep/">Sleep When Idle</a> needs the compose plugin 2.18 or later.</li>
 <li>About 4 GB of disk for the game server files.</li>
 <li>UDP ports 2456–2457 forwarded to the host. See <a href="guides/players/">Players, Admins and Bans</a>.</li>
 <li>CPU and memory for your player count:</li>
@@ -739,7 +739,7 @@
 <table>
 <thead>
 <tr>
-<th>Players online</th>
+<th>Players online, or modded</th>
 <th>CPU</th>
 <th>Memory</th>
 </tr>
@@ -762,9 +762,9 @@
 </tr>
 </tbody>
 </table>
-<p>Vanilla Valheim allows at most 10 players at once. Most of the server's CPU load runs on one thread, so a few fast cores beat many slow ones. These figures are starting points based on <a href="https://supercraft.host/wiki/valheim/dedicated_server_requirements/">Supercraft's hosting data</a>; Iron Gate publishes no server requirements. Check <code>docker stats</code> during a busy session.</p>
+<p>Vanilla Valheim allows at most 10 players at once. Most of the server's CPU load runs on one thread, so a few fast cores beat many slow ones. These figures are starting points based on <a href="https://supercraft.host/wiki/valheim/dedicated_server_requirements/">Supercraft's hosting data</a>; Iron Gate publishes no server requirements. Check <code>docker stats</code> during a busy session and compare the memory use with the container limit below.</p>
 <h3 id="container-limits">Container Limits</h3>
-<p>By default, <code>docker-compose.yml</code> caps the container at 8 GB of memory, reserves 4 GB, and leaves CPU unlimited. To change this, edit <code>deploy.resources</code>; to remove the limits, delete the <code>deploy:</code> block.</p>
+<p>By default, <code>docker-compose.yml</code> caps the container at 8 GB of memory, sets a 4 GB memory reservation (a soft limit Docker applies when the host runs short of memory), and leaves CPU unlimited. To change them, put your own <code>deploy.resources</code> for the <code>valheim</code> service in a <code>docker-compose.override.yml</code> beside <code>docker-compose.yml</code>. Compose merges that file over <code>docker-compose.yml</code>, the scripts load it in sleep mode too, and git ignores it, so <code>git pull</code> keeps your change. To remove the limits, set <code>deploy: !reset null</code> for the service there. See Docker's <a href="https://docs.docker.com/reference/compose-file/merge/">merge rules</a>.</p>
 
 
 

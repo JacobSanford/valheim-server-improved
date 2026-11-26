@@ -11,7 +11,7 @@
 <link href="../troubleshooting/" rel="prev"/>
 <link href="../improvements/" rel="next"/>
 <link href="../assets/images/favicon.png" rel="icon"/>
-<meta content="mkdocs-1.6.1, mkdocs-material-9.8.1" name="generator"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.8.2" name="generator"/>
 <title>Reference - valheim-server-improved</title>
 <link href="../assets/stylesheets/main.57a0d79d.min.css" rel="stylesheet"/>
 <link href="../assets/stylesheets/palette.fb2fffe2.min.css" rel="stylesheet"/>
@@ -385,7 +385,7 @@
 <article class="md-content__inner md-typeset">
 <h1 id="reference"><span class="enumerate-headings-plugin enumerate-heading-plugin">7.</span> Reference</h1>
 <h2 id="environment-variables"><span class="enumerate-headings-plugin enumerate-heading-plugin">7.1</span> Environment Variables</h2>
-<p>Set in <code>env/valheim.env</code>. Values shown are those in <code>env/valheim.env.example</code>.</p>
+<p>Set in <code>env/valheim.env</code>. Values shown are those in <code>env/valheim.env.example</code>. <em>Unset</em> means the line is commented out there; <em>empty</em> means the line is present with no value. The <code>SLEEP_</code> lines after <code>SLEEP_WHEN_IDLE</code> are commented out, and their value shown is the default the scripts use.</p>
 <table>
 <thead>
 <tr>
@@ -403,17 +403,17 @@
 <tr>
 <td><code>WORLD_NAME</code></td>
 <td><code>Dedicated</code></td>
-<td>The world save to load. If no save has this name, a new world is created.</td>
+<td>The world save to load. If no save has this name, the server creates a new world.</td>
 </tr>
 <tr>
 <td><code>SERVER_PASS</code></td>
 <td><code>changeme</code></td>
-<td>The password players enter to join. At least 5 characters, and not part of the server name.</td>
+<td>The password players enter to join. At least 5 characters, and not part of the server name. <code>restart.sh</code> refuses the example value <code>changeme</code>, and skips these checks when <code>SERVER_PASS_FILE</code> is set.</td>
 </tr>
 <tr>
 <td><code>SERVER_PORT</code></td>
 <td><code>2456</code></td>
-<td>The game port. The server also uses the next port (2457). Changing it also needs the <code>ports:</code> mapping in <code>docker-compose.yml</code> changed to match.</td>
+<td>The game port. The server also uses the next port (2457). If you change it, change the <code>ports:</code> mapping in <code>docker-compose.yml</code> to match. With <code>SLEEP_WHEN_IDLE=true</code>, also change the <code>ports:</code> mapping and the <code>lazytainer.group.valheim.ports</code> label in <code>docker-compose.sleep.yml</code>.</td>
 </tr>
 <tr>
 <td><code>SERVER_PUBLIC</code></td>
@@ -438,7 +438,7 @@
 <tr>
 <td><code>BACKUPS</code></td>
 <td><code>true</code></td>
-<td>Saves a backup of the world to <code>backups/</code> at 5 minutes past each hour.</td>
+<td>Saves a backup of the world to <code>backups/</code> each time the container starts and at 5 minutes past each hour.</td>
 </tr>
 <tr>
 <td><code>BACKUPS_KEEP_DAYS</code></td>
@@ -448,7 +448,7 @@
 <tr>
 <td><code>BACKUPS_KEEP_MIN</code></td>
 <td><code>3</code></td>
-<td>Never deletes the newest this many backups for age.</td>
+<td>Age-based pruning always keeps the newest this many backups. <code>restart.sh</code> refuses a value larger than <code>BACKUPS_MAX_COUNT</code>.</td>
 </tr>
 <tr>
 <td><code>BACKUPS_MAX_AGE</code></td>
@@ -508,7 +508,7 @@
 <tr>
 <td><code>NOTIFY_EVENTS</code></td>
 <td>empty</td>
-<td>Notification events to send, comma separated, or <code>all</code>. Empty sends nothing.</td>
+<td>Notification events to send, comma separated: <code>server_up</code>, <code>server_down</code>, <code>restart</code>, <code>backup</code>, <code>player_spawned</code>, or <code>all</code>. Empty sends nothing.</td>
 </tr>
 <tr>
 <td><code>NOTIFY_DISCORD_WEBHOOK</code></td>
@@ -528,21 +528,21 @@
 <tr>
 <td><code>SLEEP_METHOD</code></td>
 <td><code>stop</code></td>
-<td><code>stop</code> frees the memory; <code>pause</code> keeps it and wakes in about 5 seconds.</td>
+<td><code>stop</code> frees the memory and wakes in about 35 seconds; <code>pause</code> keeps it and wakes in about 5 seconds.</td>
 </tr>
 <tr>
 <td><code>SLEEP_AFTER_SECONDS</code></td>
 <td><code>1200</code></td>
-<td>How far back packets are counted, and how long that count must stay below <code>SLEEP_MIN_PACKETS</code> before sleeping, in seconds. 300 to 65535.</td>
+<td>How far back packets are counted, in seconds, and how long that count must stay below <code>SLEEP_MIN_PACKETS</code> before the server sleeps. 300 to 65535. Keep it above 900, so an update check runs before each sleep.</td>
 </tr>
 <tr>
 <td><code>SLEEP_MIN_PACKETS</code></td>
 <td><code>10</code></td>
-<td>Packets on ports 2456–2457 within <code>SLEEP_AFTER_SECONDS</code> that count as activity and wake the server.</td>
+<td>The number of packets on ports 2456–2457 within <code>SLEEP_AFTER_SECONDS</code> that keeps the server awake. A sleeping server wakes only when the count goes above this number. 1 to 65535.</td>
 </tr>
 </tbody>
 </table>
-<p>The env example also sets the image's event hooks and two log filters, to feed notifications and the backup pruning in <code>hooks/idle-backups.sh</code>. See <a href="../guides/notifications/">Discord Notifications</a> and <a href="../guides/backups/">Backups and Wipes</a>.</p>
+<p>The env example also sets the image's event hooks (<code>POST_SERVER_LISTENING_HOOK</code>, <code>PRE_SERVER_SHUTDOWN_HOOK</code>, <code>PRE_RESTART_HOOK</code>, <code>POST_BACKUP_HOOK</code>) and two log filters (<code>VALHEIM_LOG_FILTER_CONTAINS_PlayerSpawned</code> and <code>VALHEIM_LOG_FILTER_CONTAINS_PlayerCount</code>, each with an <code>ON_</code> command). They feed notifications and the backup pruning in <code>hooks/idle-backups.sh</code>. To run your own command from a hook, append <code>; your-command</code> to its value. See <a href="../guides/notifications/">Discord Notifications</a> and <a href="../guides/backups/">Backups and Wipes</a>.</p>
 <p>The image's <a href="https://github.com/community-valheim-tools/valheim-server-docker">README</a> lists every documented option, including those not set here. A few more are undocumented; they are listed with their defaults in the image's <a href="https://github.com/community-valheim-tools/valheim-server-docker/blob/main/defaults"><code>defaults</code></a> file.</p>
 <h2 id="commands"><span class="enumerate-headings-plugin enumerate-heading-plugin">7.2</span> Commands</h2>
 <p>Run from the repository root.</p>
@@ -556,7 +556,7 @@
 <tbody>
 <tr>
 <td><code>restart.sh</code></td>
-<td>Checks <code>SERVER_PASS</code>, pulls the latest image, starts or restarts the server, then follows the last 200 log lines. Restarting disconnects players.</td>
+<td>Checks <code>SERVER_PASS</code>, the backup settings and, with <code>SLEEP_WHEN_IDLE=true</code>, the sleep settings. Then pulls the latest image, starts or restarts the server, and follows the last 200 log lines. Restarting disconnects players.</td>
 </tr>
 <tr>
 <td><code>stop.sh</code></td>
@@ -568,7 +568,7 @@
 </tr>
 <tr>
 <td><code>notify-test.sh</code></td>
-<td>Sends a test notification from the running server.</td>
+<td>Sends a test notification from the running server to every configured adapter. Fails while the server is stopped or asleep, or when no adapter is configured.</td>
 </tr>
 <tr>
 <td><code>wipe-restart.sh</code></td>
@@ -607,7 +607,7 @@
 </tr>
 </tbody>
 </table>
-<p>With <code>SLEEP_WHEN_IDLE=true</code>, these ports are published by the <code>lazytainer</code> container (<a href="https://github.com/vmorganp/Lazytainer">Lazytainer</a>) in <code>docker-compose.sleep.yml</code> instead, and Valheim shares its network. For crossplay, uncomment the <code>2458:2458/udp</code> line there too.</p>
+<p>With <code>SLEEP_WHEN_IDLE=true</code>, the <code>lazytainer</code> container (<a href="https://github.com/vmorganp/Lazytainer">Lazytainer</a>) in <code>docker-compose.sleep.yml</code> publishes these ports instead, and Valheim shares its network. For crossplay, uncomment the <code>2458:2458/udp</code> line there too.</p>
 <h2 id="files"><span class="enumerate-headings-plugin enumerate-heading-plugin">7.4</span> Files</h2>
 <table>
 <thead>
@@ -650,7 +650,17 @@
 </tr>
 <tr>
 <td><code>hooks/</code></td>
-<td><code>idle-backups.sh</code>, which prunes backups taken while nobody plays. Mounted read-only as <code>/opt/hooks</code>.</td>
+<td><code>idle-backups.sh</code>, which prunes backups taken while nobody plays and backups older than <code>BACKUPS_KEEP_DAYS</code>. Mounted read-only as <code>/opt/hooks</code>.</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>docker-compose.yml</code></td>
+<td>The Valheim container: image, ports, mounts, health check and memory limits.</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>env/valheim.env.example</code></td>
+<td>The example settings, copied to <code>env/valheim.env</code>.</td>
 <td>Yes</td>
 </tr>
 <tr>

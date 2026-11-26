@@ -11,7 +11,7 @@
 <link href="../guides/sleep/" rel="prev"/>
 <link href="../reference/" rel="next"/>
 <link href="../assets/images/favicon.png" rel="icon"/>
-<meta content="mkdocs-1.6.1, mkdocs-material-9.8.1" name="generator"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.8.2" name="generator"/>
 <title>Troubleshooting - valheim-server-improved</title>
 <link href="../assets/stylesheets/main.57a0d79d.min.css" rel="stylesheet"/>
 <link href="../assets/stylesheets/palette.fb2fffe2.min.css" rel="stylesheet"/>
@@ -26,7 +26,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#troubleshooting">
+<a class="md-skip" href="#fix-server-problems">
           Skip to content
         </a>
 </div>
@@ -419,9 +419,10 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="troubleshooting"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.</span> Troubleshooting</h1>
+<h1 id="fix-server-problems"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.</span> Fix Server Problems</h1>
+<p>Use this page when the server won't start, stays unhealthy, doesn't wake, or can't send notifications. Find the section that matches the message or symptom you see.</p>
 <h2 id="restartsh-refuses-to-start"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.1</span> <code>restart.sh</code> Refuses to Start</h2>
-<p>It checks <code>env/valheim.env</code> before starting and names the problem:</p>
+<p><code>restart.sh</code> checks <code>env/valheim.env</code> before it starts the server. When a setting is wrong, it stops and prints one of these messages:</p>
 <table>
 <thead>
 <tr>
@@ -432,7 +433,7 @@
 <tbody>
 <tr>
 <td><code>env/valheim.env not found</code></td>
-<td>Copy the example. See the <a href="../quickstart/">Quick Start</a>.</td>
+<td>Copy the env example. See the <a href="../quickstart/">Quick Start</a>.</td>
 </tr>
 <tr>
 <td><code>SERVER_PASS ... is still the example value</code></td>
@@ -460,20 +461,20 @@
 </tr>
 <tr>
 <td><code>SLEEP_METHOD</code>, <code>SLEEP_AFTER_SECONDS</code> or <code>SLEEP_MIN_PACKETS ... must be</code></td>
-<td>Fix the value; the message gives the allowed range. See <a href="../guides/sleep/">Sleep When Idle</a>.</td>
+<td>Fix the value; the message gives the allowed values. These checks run only with <code>SLEEP_WHEN_IDLE=true</code>. <code>logs.sh</code>, <code>stop.sh</code>, <code>notify-test.sh</code> and <code>wipe-restart.sh</code> run them too. See <a href="../guides/sleep/">Sleep When Idle</a>.</td>
 </tr>
 </tbody>
 </table>
 <h2 id="the-server-stays-unhealthy"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.2</span> The Server Stays Unhealthy</h2>
-<p>If <code>docker compose ps</code> shows <code>unhealthy</code>, or still shows <code>health: starting</code> a few minutes after the download finishes, read the log with <code>./logs.sh</code>. The healthcheck allows the first start 15 minutes for the download. With <code>SLEEP_WHEN_IDLE=true</code>, <code>unhealthy</code> is also expected while the server sleeps; see <a href="../guides/sleep/">Sleep When Idle</a>.</p>
+<p>If <code>docker compose ps</code> shows <code>unhealthy</code>, or still shows <code>health: starting</code> a few minutes after the download finishes, read the log with <code>./logs.sh</code>. The healthcheck ignores failures for the first 15 minutes after each start, which leaves room for the first start's download. With <code>SLEEP_WHEN_IDLE=true</code>, <code>unhealthy</code> is also expected while the server sleeps. Plain <code>docker compose ps</code> leaves out a stopped server; <code>docker compose ps -a</code> shows it as <code>exited</code> (stop) or <code>paused</code>. See <a href="../guides/sleep/">Sleep When Idle</a>.</p>
 <p>If the log shows <code>Steamcmd needs to be online to update</code>, the container can't reach the internet, so it can't download the game. Check from inside the container:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>valheim<span class="w"> </span>curl<span class="w"> </span>-sS<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s1">'%{http_code}\n'</span><span class="w"> </span>https://api.steampowered.com/
 </span></code></pre></div>
-<p>Any HTTP status, such as <code>404</code>, means it can connect. A timeout means something on the host blocks traffic from Docker networks, such as a VPN client or a firewall that only allows Docker's default bridge.</p>
+<p>Any HTTP status, such as <code>404</code>, means the container can connect. A timeout suggests that something on the host blocks traffic from Docker networks, such as a VPN client or a firewall that only allows Docker's default bridge.</p>
 <h2 id="the-server-doesnt-wake"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.3</span> The Server Doesn't Wake</h2>
-<p>With <code>SLEEP_WHEN_IDLE=true</code>, a join attempt has to send more than <code>SLEEP_MIN_PACKETS</code> packets to ports 2456–2457 to wake the server. Lower <code>SLEEP_MIN_PACKETS</code> and run <code>./restart.sh</code>. Players must use <strong>Join IP</strong>, because a sleeping server isn't in the <strong>Community</strong> list. See <a href="../guides/sleep/">Sleep When Idle</a>.</p>
+<p>With <code>SLEEP_WHEN_IDLE=true</code>, a join attempt has to send more than <code>SLEEP_MIN_PACKETS</code> packets to ports 2456–2457 within <code>SLEEP_AFTER_SECONDS</code> to wake the server. Lower <code>SLEEP_MIN_PACKETS</code> and run <code>./restart.sh</code>. Players must use <strong>Join IP</strong>, because a sleeping server isn't in the <strong>Community</strong> list. See <a href="../guides/sleep/">Sleep When Idle</a>.</p>
 <h2 id="the-status-page-shows-an-error"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.4</span> The Status Page Shows an Error</h2>
-<p><code>status.json</code> reports <code>error</code> until the server answers status queries, so expect one for the first minute. It reports the server only while <code>SERVER_PUBLIC=true</code>, so for a private server, use <code>docker compose ps</code> instead.</p>
+<p>With <code>STATUS_HTTP=true</code>, the status page is at <code>http://127.0.0.1:8456/status.json</code>. It reports <code>error</code> until the server answers status queries, so expect one for the first minute. It reports the server only while <code>SERVER_PUBLIC=true</code>, so for a private server, use <code>docker compose ps</code> instead.</p>
 <h2 id="wipe-restartsh-says-a-folder-is-not-writable"><span class="enumerate-headings-plugin enumerate-heading-plugin">6.5</span> <code>wipe-restart.sh</code> Says a Folder Is Not Writable</h2>
 <p>Some files under <code>data/</code> or <code>backups/</code> belong to another user, often root from a run without <code>PUID</code>/<code>PGID</code>. Nothing was deleted. Take ownership, then run the wipe again:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a>sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>id<span class="w"> </span>-u<span class="k">)</span><span class="s2">:</span><span class="k">$(</span>id<span class="w"> </span>-g<span class="k">)</span><span class="s2">"</span><span class="w"> </span>data<span class="w"> </span>backups
@@ -490,7 +491,7 @@
 <tbody>
 <tr>
 <td><code>notify: no adapter is configured</code></td>
-<td>Set <code>NOTIFY_DISCORD_WEBHOOK</code> in <code>env/valheim.env</code> and run <code>./restart.sh</code>.</td>
+<td>Set <code>NOTIFY_DISCORD_WEBHOOK</code> in <code>env/valheim.env</code>, run <code>./restart.sh</code>, then run <code>./notify-test.sh</code> again.</td>
 </tr>
 <tr>
 <td><code>discord: HTTP 401</code> or <code>HTTP 404</code>, <code>Invalid Webhook Token</code> or <code>Unknown Webhook</code></td>
@@ -500,9 +501,13 @@
 <td><code>Could not resolve host</code></td>
 <td>The container can't reach the internet. See <a href="#the-server-stays-unhealthy">The Server Stays Unhealthy</a>.</td>
 </tr>
+<tr>
+<td><code>The server isn't running, or is asleep.</code></td>
+<td>Start it with <code>./restart.sh</code>, then run <code>./notify-test.sh</code> again. With <code>SLEEP_WHEN_IDLE=true</code>, the server must be awake for the test.</td>
+</tr>
 </tbody>
 </table>
-<p>If the test arrives but events don't, check the event is listed in <code>NOTIFY_EVENTS</code> and the hook lines from <code>env/valheim.env.example</code> are in your <code>env/valheim.env</code>.</p>
+<p>If the test arrives but events don't, check that <code>NOTIFY_EVENTS</code> lists the event; the env example leaves it empty, and the server sends only the events you list. The event values are in <a href="../guides/notifications/">Notifications</a>. Also check that the hook lines from <code>env/valheim.env.example</code> are in your <code>env/valheim.env</code>. After a change, run <code>./restart.sh</code>.</p>
 </article>
 </div>
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>

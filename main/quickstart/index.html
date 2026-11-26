@@ -11,7 +11,7 @@
 <link href=".." rel="prev"/>
 <link href="../guides/players/" rel="next"/>
 <link href="../assets/images/favicon.png" rel="icon"/>
-<meta content="mkdocs-1.6.1, mkdocs-material-9.8.1" name="generator"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.8.2" name="generator"/>
 <title>Quick Start - valheim-server-improved</title>
 <link href="../assets/stylesheets/main.57a0d79d.min.css" rel="stylesheet"/>
 <link href="../assets/stylesheets/palette.fb2fffe2.min.css" rel="stylesheet"/>
@@ -26,7 +26,7 @@
 <input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
 <label class="md-overlay" for="__drawer"></label>
 <div data-md-component="skip">
-<a class="md-skip" href="#quick-start">
+<a class="md-skip" href="#set-up-and-start-the-server">
           Skip to content
         </a>
 </div>
@@ -365,8 +365,8 @@
 </div>
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
-<h1 id="quick-start"><span class="enumerate-headings-plugin enumerate-heading-plugin">1.</span> Quick Start</h1>
-<p>Clone the repository and run every command from its root:</p>
+<h1 id="set-up-and-start-the-server"><span class="enumerate-headings-plugin enumerate-heading-plugin">1.</span> Set Up and Start the Server</h1>
+<p>Use this page to set up and start the server on a host that meets the <a href="../#requirements">Requirements</a>. Clone the repository and run every command from its root:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/JacobSanford/valheim-server-improved.git
 </span><span id="__span-0-2"><a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>valheim-server-improved
 </span></code></pre></div>
@@ -378,15 +378,15 @@
 <h2 id="set-the-password-and-user"><span class="enumerate-headings-plugin enumerate-heading-plugin">1.2</span> Set the Password and User</h2>
 <p>In <code>env/valheim.env</code>:</p>
 <ol>
-<li>Replace <code>SERVER_PASS=changeme</code> with your own password. It must be at least 5 characters and must not appear in <code>SERVER_NAME</code>. The game server rejects both, and <code>restart.sh</code> checks them before starting.</li>
-<li>The server runs as <code>PUID</code>/<code>PGID</code> and writes <code>data/</code> and <code>backups/</code> as that user. If <code>id -u</code> or <code>id -g</code> prints a number other than 1000, set the matching variable to that number.</li>
+<li><strong>Set the server password.</strong> Replace <code>SERVER_PASS=changeme</code> with your own password. It must be at least 5 characters and must not appear in <code>SERVER_NAME</code>.</li>
+<li><strong>Match the server's user and group to yours.</strong> The server runs as <code>PUID</code>/<code>PGID</code> and writes <code>data/</code>, <code>server/</code> and <code>backups/</code> as that user. If <code>id -u</code> or <code>id -g</code> prints a number other than 1000, set the matching variable to that number. Otherwise, leave both unchanged.</li>
 </ol>
 <p>Every other setting is in the <a href="../reference/#environment-variables">Reference</a>.</p>
 <h2 id="start-the-server"><span class="enumerate-headings-plugin enumerate-heading-plugin">1.3</span> Start the Server</h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a href="#__codelineno-2-1" id="__codelineno-2-1" name="__codelineno-2-1"></a>./restart.sh
 </span></code></pre></div>
-<p>The script checks the password, starts the server, then follows the logs. Press Ctrl+C to leave them; the server keeps running. The first start takes longer, because it downloads the game server files.</p>
-<p>The server is ready when the log shows <code>Game server connected</code>, and <code>docker compose ps</code> shows the container as <code>healthy</code>.</p>
+<p>The script checks the settings, pulls the latest image, starts the server, then follows the logs. Press Ctrl+C to stop following the logs; the server keeps running. The first start downloads about 4 GB of game server files, and the healthcheck allows it 15 minutes.</p>
+<p>The server is ready when the log shows <code>Game server connected</code>, and <code>docker compose ps</code> shows the container as <code>healthy</code>. If <code>restart.sh</code> refuses to start or the container stays <code>unhealthy</code>, see <a href="../troubleshooting/">Troubleshooting</a>.</p>
 <p>Next, <a href="../guides/players/">let players join</a>.</p>
 </article>
 </div>
