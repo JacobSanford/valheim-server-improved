@@ -7,11 +7,13 @@ tags: [backups, restore, wipe]
 lastReviewed: 2026-11-13
 ---
 
-# Backups and Wipes
+# Restore, Wipe and Keep Backups
+
+Use this page when you need to roll the world back to an earlier backup, start a new world, or change how long backups are kept.
 
 The server writes a backup of the world to `backups/` each time the container starts and at 5 minutes past each hour, keeping at most 12. Backups older than 30 days are deleted, but the newest 3 are always kept, however old. Backups stop an hour after the last player leaves.
 
-A running server saves the world even when nobody is on, so every restart adds a backup that differs from the last one only by idle time. When nobody has played since the previous backup, `hooks/idle-backups.sh` deletes that previous one and keeps the new one, so restarts and idle hours can't push out backups of real play.
+A running server saves the world even when nobody is on, so every restart adds a backup that differs from the last one only by idle time. When nobody has played since the previous backup, `hooks/idle-backups.sh` deletes that previous one and keeps the new one. Restarts and idle hours then can't push out backups of real play.
 
 Run every command from the repository root, and replace the placeholders:
 
@@ -22,7 +24,7 @@ Run every command from the repository root, and replace the placeholders:
 
 ## Restore an Hourly Backup
 
-Each file in `backups/` is a zip of the world, named `worlds-<YYYYMMDD-HHMMSS>.zip`. The current world is moved to `wipe-archives/`, not deleted. The commands need `unzip` installed on the host.
+Each file in `backups/` is a zip of the world, with a file name of the form `worlds-<YYYYMMDD-HHMMSS>.zip`. The commands move the current world to `wipe-archives/` and keep it there. The commands need `unzip` installed on the host. **If any command fails, stop and do not run `./restart.sh`:** with no world in `data/worlds_local/`, the server starts a new one.
 
 ```bash
 ./stop.sh
@@ -36,7 +38,7 @@ rm -r restore-tmp
 
 ## Wipe the World
 
-`wipe-restart.sh` deletes every world, not only `<WORLD_NAME>`: everything in `data/worlds_local/`, in `data/worlds/` if present, and in `backups/`. It keeps the admin, ban and permitted lists. Before deleting, it asks you to type the world name, checks it can delete everything, and saves `data/` and `backups/` to `wipe-archives/<WORLD_NAME>-<YYYYMMDD-HHMMSS>.tar.gz`. It then starts a new world.
+`wipe-restart.sh` deletes every world, not only `<WORLD_NAME>`: everything in `data/worlds_local/`, in `data/worlds/` if present, and in `backups/`. It keeps the admin, ban and permitted lists. Before deleting, it checks it can delete everything, asks you to type the world name, stops the server, and saves `data/` and `backups/` to `wipe-archives/<WORLD_NAME>-<YYYYMMDD-HHMMSS>.tar.gz`. It then starts a new world.
 
 ```bash
 ./wipe-restart.sh
@@ -44,7 +46,7 @@ rm -r restore-tmp
 
 ## Restore a Wipe Archive
 
-A wipe archive holds `data/` and `backups/` as they were before the wipe. Restoring it deletes everything in `data/`, including the current world and the player lists, without archiving them first. The old world's backups return to `backups/`, beside any made since the wipe.
+A wipe archive holds `data/` and `backups/` as they were before the wipe. Restoring it deletes everything in `data/`, including the current world and the player lists, without archiving them first. If another user, often root, owns files under `data/`, `rm` fails part way; take ownership first as in [Troubleshooting](../troubleshooting.md). The old world's backups return to `backups/`, beside any made since the wipe. From the next backup on, `BACKUPS_MAX_COUNT` and `BACKUPS_KEEP_DAYS` count them together with the newer ones, so most of the old world's backups are deleted.
 
 ```bash
 ./stop.sh
@@ -53,7 +55,7 @@ tar -xzf "wipe-archives/<WORLD_NAME>-<YYYYMMDD-HHMMSS>.tar.gz"
 ./restart.sh
 ```
 
-After any restore, check the log shows `Game server connected`.
+After any restore or wipe, `./restart.sh` follows the log. Check it shows `Game server connected`, then press Ctrl+C to leave the log; the server keeps running.
 
 ## Change How Long Backups Are Kept
 
@@ -62,9 +64,9 @@ Set these in `env/valheim.env`, then run `./restart.sh`:
 | Setting | Example value | Meaning |
 |---|---|---|
 | `BACKUPS_KEEP_DAYS` | `30` | Deletes backups older than this many days. |
-| `BACKUPS_KEEP_MIN` | `3` | Never deletes the newest this many backups for age, so a server left off for months still has them. |
+| `BACKUPS_KEEP_MIN` | `3` | Always keeps this many of the newest backups, however old, so a server left off for months still has them. |
 | `BACKUPS_MAX_COUNT` | `12` | Keeps at most this many backups, whatever their age. |
 
-The image's own age limit, `BACKUPS_MAX_AGE`, deletes every backup older than it, even the last one. So the env example turns it off with `BACKUPS_MAX_AGE=36500` (100 years), and `hooks/idle-backups.sh` applies `BACKUPS_KEEP_DAYS` and `BACKUPS_KEEP_MIN` after each backup instead. `restart.sh` refuses to start while either is set and `BACKUPS_MAX_AGE` is lower than 36500, or when `BACKUPS_KEEP_MIN` is larger than `BACKUPS_MAX_COUNT`.
+The image's own age limit, `BACKUPS_MAX_AGE`, deletes every backup older than it, even the last one. So the env example turns it off with `BACKUPS_MAX_AGE=36500` (100 years), and `hooks/idle-backups.sh` applies `BACKUPS_KEEP_DAYS` and `BACKUPS_KEEP_MIN` after each backup. `restart.sh` refuses to start while either is set and `BACKUPS_MAX_AGE` is unset or lower than 36500, or when `BACKUPS_KEEP_MIN` is larger than `BACKUPS_MAX_COUNT`.
 
 To use the image's age limit instead, remove `BACKUPS_KEEP_DAYS` and `BACKUPS_KEEP_MIN` and set `BACKUPS_MAX_AGE` to the number of days.
