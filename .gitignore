@@ -4,3 +4,4 @@ backups/
 env/valheim.env
 wipe-archives/
 site/
+.venv/
